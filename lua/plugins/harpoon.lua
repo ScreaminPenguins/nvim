@@ -21,6 +21,27 @@ return {
       end,
       desc = "Harpoon File",
     },
+    {
+      "<leader>1",
+      function()
+        require("harpoon"):list():select(1)
+      end,
+      desc = "Harpoon File to: 1",
+    },
+    {
+      "<leader>2",
+      function()
+        require("harpoon"):list():select(1)
+      end,
+      desc = "Harpoon File to: 2",
+    },
+    {
+      "<leader>3",
+      function()
+        require("harpoon"):list():select(1)
+      end,
+      desc = "Harpoon File to: 3",
+    },
   },
   -- keys = {
   --   {
