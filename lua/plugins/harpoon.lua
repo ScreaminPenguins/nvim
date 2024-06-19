@@ -31,14 +31,14 @@ return {
     {
       "<leader>2",
       function()
-        require("harpoon"):list():select(1)
+        require("harpoon"):list():select(2)
       end,
       desc = "Harpoon File to: 2",
     },
     {
       "<leader>3",
       function()
-        require("harpoon"):list():select(1)
+        require("harpoon"):list():select(3)
       end,
       desc = "Harpoon File to: 3",
     },
