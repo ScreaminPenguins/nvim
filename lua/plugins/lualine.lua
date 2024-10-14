@@ -29,7 +29,7 @@ return {
         lualine_x = { { "filetype", icon_only = false } },
         lualine_y = { "location", "progress" },
         lualine_z = {
-          { "datetime", style = "%Y-%m-%d %H:%M:%S (%Z)" },
+          -- { "datetime", style = "%Y-%m-%d %H:%M:%S (%Z)" },
         },
       },
     },
