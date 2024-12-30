@@ -7,6 +7,11 @@ return {
 			{ 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' }
 		},
 		require("telescope").setup({
+			pickers = {
+				find_files = {
+					theme = "ivy"
+				}
+			}
 		}),
 		config = function()
 			vim.keymap.set("n", "<leader>fd", require("telescope.builtin").find_files)
