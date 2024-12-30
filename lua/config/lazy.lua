@@ -22,9 +22,14 @@ vim.g.maplocalleader = "\\"
 -- Setup lazy.nvim
 require("lazy").setup({
   spec = {
-	  { "catppuccin/nvim", name = "catppuccin", lazy = false },
-	  { import = "plugins" }
-  }
+    {
+      "catppuccin/nvim",
+      name = "catppuccin",
+      lazy = false
+    },
+    { import = "plugins" }
+  },
 })
 
 vim.cmd("colorscheme catppuccin-macchiato")
+vim.keymap.set("n", "<leader>l", "<cmd>Lazy<cr>", { desc = "Lazy" })
