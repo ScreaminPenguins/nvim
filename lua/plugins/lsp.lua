@@ -15,7 +15,19 @@ return {
 			}
 		},
 		config = function()
-			require("lspconfig").lua_ls.setup({})
+			local lspconfig = require("lspconfig")
+
+			lspconfig.lua_ls.setup({})
+			lspconfig.pylsp.setup({
+				settings = {
+					plugins = {
+						ruff = {
+							enabled = true,
+							lineLength = 150
+						}
+					}
+				}
+			})
 
 			vim.api.nvim_create_autocmd('LspAttach', {
 				callback = function(args)
