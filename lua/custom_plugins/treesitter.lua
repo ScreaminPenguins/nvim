@@ -3,13 +3,15 @@ return {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter.configs").setup({
+      local configs = require("nvim-treesitter.configs")
+      configs.setup({
         ensured_installed = {
           "c",
           "lua",
           "markdown",
           "python",
           "query",
+          "sql",
           "vim",
           "vimdoc",
         },
