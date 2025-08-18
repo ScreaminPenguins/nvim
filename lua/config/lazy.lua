@@ -6,17 +6,18 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
+vim.g.mapleader = " "
+
 require("lazy").setup({
   spec = {
-    { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    { import = "custom_plugins" },
+    { import = "plugins" },
   },
   defaults = {
     lazy = false,
-    version = false, -- always use the latest git commit
+    version = false,
   },
   install = {},
-  checker = { enabled = true }, -- automatically check for plugin updates
+  checker = { enabled = true },
   performance = {
     rtp = {
       -- disable some rtp plugins
