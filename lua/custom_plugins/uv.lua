@@ -3,4 +3,5 @@ return {
   opts = {
     picker_integration = true,
   },
+  ft = { "python" },
 }
