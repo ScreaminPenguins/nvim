@@ -12,8 +12,11 @@ return {
 		dir = vim.fn.stdpath("config"),
 		config = function()
 			vim.lsp.enable("basedpyright")
-			vim.lsp.enable("ruff")
+			vim.lsp.enable("bashls")
 			vim.lsp.enable("lua_ls")
+			vim.lsp.enable("ruff")
+			vim.lsp.enable("json-lsp")
+			vim.lsp.enable("yaml-language-server")
 
 			local add_desc = function(opts, descr)
 				return vim.tbl_extend("force", opts, { desc = descr })

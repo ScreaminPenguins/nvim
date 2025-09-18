@@ -39,3 +39,31 @@ keymap.set("n", "<leader>wd", "<C-W>c", { noremap = true, desc = "Close Window" 
 
 -- Buffers
 keymap.set("n", "<leader>bd", "<cmd>bd<cr>", { noremap = true, desc = "Close Buffer" })
+
+
+keymap.set(
+	"n",
+	"/",
+	function()
+		vim.api.nvim_feedkeys("/", "n", true)
+		vim.api.nvim_create_autocmd("CmdlineLeave", {
+			pattern = "/",
+			once = true,
+			callback = function()
+				vim.defer_fn(function() vim.cmd("nohlsearch") end, 50)
+			end
+		})
+	end,
+	{ noremap = true, desc = "Search Forward" }
+)
+
+keymap.set(
+	"n", "n",
+	function()
+		vim.cmd("normal! n")
+		vim.defer_fn(function()
+			vim.cmd("nohlsearch")
+		end, 1000)
+	end,
+	{ noremap = true, desc = "Next Match" }
+)
