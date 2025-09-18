@@ -5,9 +5,11 @@ return {
     opts = {
       ensure_installed = {
         "basedpyright",
+        "black",
         "lua-language-server",
         "ruff",
         "stylua",
+        "yaml-language-server",
       },
     },
 

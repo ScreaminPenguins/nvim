@@ -24,10 +24,10 @@ return {
       {
         "<leader>sb",
         function()
-          vim.cmd("FzfLua lgrep_curbuf")
+          vim.cmd("FzfLua buffers")
         end,
         mode = "n",
-        desc = "FZF: Grep Current Buffer",
+        desc = "FZF: Buffers",
       },
       {
         "<leader>sd",
@@ -52,6 +52,14 @@ return {
         end,
         mode = "n",
         desc = "FZF: Document Symbols",
+      },
+      {
+        "<leader>sw",
+        function()
+          vim.cmd("FzfLua grep_cWORD")
+        end,
+        mode = "n",
+        desc = "FZF: Search current word",
       },
     },
   },

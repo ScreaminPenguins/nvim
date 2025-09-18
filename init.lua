@@ -10,5 +10,15 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
-vim.opt.shiftwidth = 4
-vim.opt.clipboard = "unnamedplus"
+-- Opts
+local opt = vim.opt
+opt.clipboard = "unnamedplus"
+opt.relativenumber = true
+opt.shiftwidth = 4
+
+-- Diagnostics
+vim.diagnostic.config({
+  virtual_text = {
+    prefix = "●",
+  },
+})
