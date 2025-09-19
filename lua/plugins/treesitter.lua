@@ -2,24 +2,29 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    config = function()
-      local configs = require("nvim-treesitter.configs")
-      configs.setup({
-        ensured_installed = {
-          "c",
-          "lua",
-          "markdown",
-          "python",
-          "query",
-          "sql",
-          "vim",
-          "vimdoc",
-        },
-        auto_install = true,
-        highlight = {
-          enable = true,
-        },
-      })
+    opts = {
+      auto_install = true,
+      ensure_installed = {
+        "c",
+        "json",
+        "lua",
+        "markdown",
+        "python",
+        "query",
+        "sql",
+        "yaml",
+        "vim",
+        "vimdoc",
+      },
+      fold = { enable = true },
+      highlight = { enable = true },
+      ignore_install = {},
+      indent = { enable = true },
+      sync_install = false
+    },
+    lazy = vim.fn.argc(-1) == 0,
+    config = function(_, opts)
+      require("nvim-treesitter.configs").setup(opts)
     end,
   },
 }

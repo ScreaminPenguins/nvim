@@ -36,6 +36,14 @@ return {
           vertical_center = true,
         },
       })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "dashboard",
+        callback = function()
+          vim.opt_local.foldmethod = "manual"
+          vim.opt_local.foldenable = false
+        end
+      })
     end,
     dependencies = { { "nvim-tree/nvim-web-devicons" } },
   },
