@@ -20,6 +20,7 @@ return {
     event = "VimEnter",
     opts = {},
     config = function()
+      local FzfLua = require("fzf-lua")
       require("dashboard").setup({
         theme = "doom",
         config = {
@@ -31,6 +32,12 @@ return {
               icon = "󰈙 ",
               key = "f",
             },
+            {
+              action = FzfLua.grep_project,
+              desc = " Grep",
+              icon = " ",
+              key = "w"
+            }
           },
           footer = {},
           vertical_center = true,
