@@ -1,30 +1,31 @@
 return {
-	{
-		"folke/which-key.nvim",
-		event = "VeryLazy",
-		opts = {},
-		config = function()
-			local wk = require("which-key")
-			wk.add({
-				{ "<leader>l", group = "[L]azy" },
-				{ "g",         group = "+Go To" }
-			})
-		end,
-		keys = {
-			{
-				"<leader>?",
-				function()
-					require("which-key").show({ global = false })
-				end,
-				desc = "Buffer Local Keymaps (which-key)",
-			},
-			{
-				"<leader>lu",
-				function()
-					vim.cmd("Lazy")
-				end,
-				desc = "Lazy: UI",
-			},
-		},
-	},
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {},
+    config = function()
+      local wk = require("which-key")
+      wk.add({
+        { "<leader>s", group = "[S]earch" },
+        { "<leader>l", group = "[L]azy" },
+        { "g", group = "+Go To" },
+      })
+    end,
+    keys = {
+      {
+        "<leader>?",
+        function()
+          require("which-key").show({ global = false })
+        end,
+        desc = "Buffer Local Keymaps (which-key)",
+      },
+      {
+        "<leader>lu",
+        function()
+          vim.cmd("Lazy")
+        end,
+        desc = "Lazy: UI",
+      },
+    },
+  },
 }
