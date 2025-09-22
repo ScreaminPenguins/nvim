@@ -42,11 +42,8 @@ return {
 
     keys = {
       {
-        "<leader>cm",
-        function()
-          require("mason")
-          vim.cmd("Mason")
-        end,
+        "<leader>tm",
+        "<cmd>Mason<cr>",
         desc = "Mason",
       },
     },

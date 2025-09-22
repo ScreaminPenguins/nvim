@@ -3,63 +3,63 @@ return {
     "ibhagwan/fzf-lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false,
-    opts = {},
+    opts = {
+      winopts = {},
+    },
     keys = {
       {
         "<leader>sf",
-        function()
-          vim.cmd("FzfLua files")
-        end,
+        "<cmd>FzfLua files<cr>",
         mode = "n",
         desc = "Files",
       },
       {
         "<leader>/",
-        function()
-          vim.cmd("FzfLua live_grep")
-        end,
+        "<cmd>FzfLua live_grep<cr>",
         mode = "n",
-        desc = "FZF: Grep Project",
+        desc = "Grep Project",
       },
       {
         "<leader>sb",
-        function()
-          vim.cmd("FzfLua buffers")
-        end,
+        "<cmd>FzfLua buffers<cr>",
         mode = "n",
         desc = "Buffers",
       },
       {
+        "<leader>sB",
+        "<cmd>FzfLua grep_curbuff<cr>",
+        mode = "n",
+        desc = "Grep Current Buffer",
+      },
+      {
         "<leader>sd",
-        function()
-          vim.cmd("FzfLua diagnostics_document")
-        end,
+        "<cmd>FzfLua diagnostics_document<cr>",
         mode = "n",
         desc = "Document Diagnostics",
       },
       {
         "<leader>sm",
-        function()
-          vim.cmd("FzfLua marks")
-        end,
+        "<cmd>FzfLua marks<cr>",
         mode = "n",
         desc = "Marks",
       },
       {
         "<leader>ss",
-        function()
-          vim.cmd("FzfLua lsp_document_symbols")
-        end,
+        "<cmd>FzfLua lsp_document_symbols<cr>",
         mode = "n",
         desc = "Document Symbols",
       },
       {
         "<leader>sw",
-        function()
-          vim.cmd("FzfLua grep_cWORD")
-        end,
+        "<cmd>FzfLua grep_cword<cr>",
         mode = "n",
-        desc = "Search current word",
+        desc = "Grep for current word",
+      },
+      {
+        "<leader>sW",
+        "<cmd>FzfLua grep_cWORD<cr>",
+        mode = "n",
+        desc = "Grep for current WORD",
       },
     },
   },

@@ -6,8 +6,11 @@ return {
     config = function()
       local wk = require("which-key")
       wk.add({
+        { "<leader>b", group = "[B]uffers" },
         { "<leader>s", group = "[S]earch" },
         { "<leader>l", group = "[L]azy" },
+        { "<leader>t", group = "[T]ools" },
+        { "<leader>w", group = "[W]indows" },
         { "g", group = "+Go To" },
       })
     end,
@@ -21,9 +24,7 @@ return {
       },
       {
         "<leader>lu",
-        function()
-          vim.cmd("Lazy")
-        end,
+        "<cmd>Lazy<cr>",
         desc = "Lazy: UI",
       },
     },

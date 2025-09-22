@@ -20,24 +20,30 @@ return {
     event = "VimEnter",
     opts = {},
     config = function()
-      local FzfLua = require("fzf-lua")
+      local fzf = require("fzf-lua")
       require("dashboard").setup({
         theme = "doom",
         config = {
           header = vim.split(vanilla_gorilla, "\n"),
           center = {
             {
-              action = FzfLua.files,
+              action = fzf.files,
               desc = " Find Files",
               icon = "󰈙 ",
               key = "f",
             },
             {
-              action = FzfLua.grep_project,
+              action = fzf.grep_project,
               desc = " Grep",
               icon = " ",
-              key = "w"
-            }
+              key = "w",
+            },
+            {
+              action = ":lua FzfLua.files({cwd = '~/.config/nvim'})",
+              desc = " Configs",
+              icon = " ",
+              key = "c",
+            },
           },
           footer = {},
           vertical_center = true,
@@ -49,7 +55,7 @@ return {
         callback = function()
           vim.opt_local.foldmethod = "manual"
           vim.opt_local.foldenable = false
-        end
+        end,
       })
     end,
     dependencies = { { "nvim-tree/nvim-web-devicons" } },
