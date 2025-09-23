@@ -8,11 +8,11 @@ return {
       wk.add({
         { "<leader>b", group = "[B]uffers" },
         { "<leader>s", group = "[S]earch" },
-        { "<leader>l", group = "[L]azy" },
         { "<leader>t", group = "[T]ools" },
         { "<leader>w", group = "[W]indows" },
         { "g", group = "+Go To" },
         -- nested groupings
+        { "<leader>tc", group = "[C]laude" },
         { "<leader>tu", group = "[U]V" },
       })
     end,
@@ -25,7 +25,7 @@ return {
         desc = "Buffer Local Keymaps (which-key)",
       },
       {
-        "<leader>lu",
+        "<leader>tl",
         "<cmd>Lazy<cr>",
         desc = "Lazy: UI",
       },

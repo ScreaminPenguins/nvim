@@ -8,6 +8,7 @@ return {
         "bash-language-server",
         "black",
         "docker-language-server",
+        "helm-ls",
         "lua-language-server",
         "ruff",
         "stylua",
