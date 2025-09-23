@@ -12,6 +12,8 @@ return {
         { "<leader>t", group = "[T]ools" },
         { "<leader>w", group = "[W]indows" },
         { "g", group = "+Go To" },
+        -- nested groupings
+        { "<leader>tu", group = "[U]V" },
       })
     end,
     keys = {

@@ -7,6 +7,7 @@ return {
         "basedpyright",
         "bash-language-server",
         "black",
+        "docker-language-server",
         "lua-language-server",
         "ruff",
         "stylua",

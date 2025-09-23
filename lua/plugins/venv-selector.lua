@@ -4,9 +4,14 @@ return {
     "neovim/nvim-lspconfig",
     "ibhagwan/fzf-lua",
   },
-  ft = "python", -- Load when opening Python files
+  lazy = true,
+  ft = { "python" }, -- Load when opening Python files
   keys = {
-    { ",v", "<cmd>VenvSelect<cr>" }, -- Open picker on keymap
+    {
+      "<leader>tv",
+      "<cmd>VenvSelect<cr>",
+      { desc = "Venv Selector" },
+    },
   },
   opts = { -- this can be an empty lua table - just showing below for clarity.
     search = {}, -- if you add your own searches, they go here.

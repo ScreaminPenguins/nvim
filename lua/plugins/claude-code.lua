@@ -3,16 +3,9 @@ return {
   dependencies = {
     "nvim-lua/plenary.nvim", -- Required for git operations
   },
-  lazy = false,
+  lazy = true,
   config = function()
-    require("claude-code").setup({
-      keymaps = {
-        toggle = {
-          variants = {},
-        },
-      },
-    })
-    vim.keymap.del({ "n" }, "<leader>cC")
+    require("claude-code").setup({})
     local wk = require("which-key")
     wk.add({ "<leader>tc", group = "[C]laude" })
   end,
