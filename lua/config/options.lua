@@ -1,6 +1,7 @@
 local opt = vim.opt
 
 opt.foldlevel = 99
+opt.cmdheight = 0
 opt.clipboard = "unnamedplus"
 opt.confirm = true
 opt.expandtab = true
