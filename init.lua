@@ -9,5 +9,5 @@ require("config.autocmds")
 vim.diagnostic.config({
 	virtual_text = {
 		prefix = "",
-	},
+  }
 })

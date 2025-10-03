@@ -75,7 +75,7 @@ return {
 				"<leader>sk",
 				"<cmd>FzfLua keymaps<cr>",
 				mode = "n",
-				desc = "Grep for current WORD",
+				desc = "Keymaps",
 			},
 		},
 	},
