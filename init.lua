@@ -7,7 +7,7 @@ require("config.autocmds")
 
 -- Diagnostics
 vim.diagnostic.config({
-  virtual_text = {
-    prefix = "●",
-  },
+	virtual_text = {
+		prefix = "",
+	},
 })
