@@ -10,6 +10,7 @@ return {
 				{ "<leader>d", group = "[D]ebug" },
 				{ "<leader>s", group = "[S]earch" },
 				{ "<leader>t", group = "[T]ools" },
+				{ "<leader>v", group = "[V]isual Toggles" },
 				{ "<leader>w", group = "[W]indows" },
 				{ "g", group = "+Go To" },
 				-- nested groupings

@@ -38,7 +38,7 @@ end, { noremap = true, desc = "Next Match" })
 
 -- Diagnostics
 -- TODO: Make this better
-vim.keymap.set("n", "E", function()
+vim.keymap.set("n", "<leader>vd", function()
 	local vt = vim.diagnostic.config().virtual_text
 	if vt then
 		vim.diagnostic.config({ virtual_text = false })
@@ -46,7 +46,6 @@ vim.keymap.set("n", "E", function()
 		vim.diagnostic.config({
 			virtual_text = {
 				prefix = "",
-			},
-		})
-	end
-end, { silent = true, noremap = true })
+	  },
+  })  end
+end, { silent = true, noremap = true, desc = "Toggle diagnostic" })

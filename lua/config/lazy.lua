@@ -17,7 +17,7 @@ require("lazy").setup({
 		lazy = false,
 		version = false,
 	},
-	rocks = { enabled = false },
+	rocks = { enabled = false }, -- disabled: causing issues within nvim-dap-python
 	install = {},
 	checker = { enabled = true },
 	performance = {
