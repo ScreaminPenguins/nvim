@@ -8,6 +8,7 @@ return {
 			wk.add({
 				{ "<leader>b", group = "[B]uffers" },
 				{ "<leader>d", group = "[D]ebug" },
+				{ "<leader>h", group = "[H]arpoon" },
 				{ "<leader>s", group = "[S]earch" },
 				{ "<leader>t", group = "[T]ools" },
 				{ "<leader>v", group = "[V]isual Toggles" },

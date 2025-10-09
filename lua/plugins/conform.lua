@@ -8,7 +8,7 @@ return {
 				json = { "prettier" },
 				lua = { "sylua" },
 				markdown = { "prettier" },
-				python = { "black" },
+				python = { "ruff_format" },
 				yaml = { "prettier" },
 			},
 			default_format_opts = { lsp_format = "fallback" },
