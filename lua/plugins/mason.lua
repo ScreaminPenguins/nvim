@@ -4,10 +4,8 @@ return {
 		build = ":MasonUpdate",
 		opts = {
 			ensure_installed = {
-				-- "basedpyright",
-				"ty",
+				"basedpyright",
 				"bash-language-server",
-				-- "black",
 				"debugpy",
 				"docker-language-server",
 				"gopls",
@@ -42,15 +40,11 @@ return {
 					end
 				end
 			end)
+
+			vim.keymap.set("n", "<leader>tM", "<cmd>Mason<cr>", { desc = "Toggle Mason UI" })
 		end,
 
-		keys = {
-			{
-				"<leader>tm",
-				"<cmd>Mason<cr>",
-				desc = "Mason",
-			},
-		},
+		keys = {},
 	},
 	{
 		"jay-babu/mason-nvim-dap.nvim",

@@ -57,7 +57,7 @@ end, { noremap = true, desc = "Close Buffer" })
 set("n", "<leader>bb", "<cmd>b#<cr>", { noremap = true, desc = "Previous Buffer" })
 
 -- Rename symbol
-set("n", "<leader>cr", vim.lsp.buf.rename, { desc = "LSP Rename" })
+set("n", "<leader>rs", vim.lsp.buf.rename, { desc = "LSP Rename" })
 
 -- -- Better search highlighting
 -- set("n", "/", function()
@@ -82,7 +82,7 @@ set("n", "<leader>cr", vim.lsp.buf.rename, { desc = "LSP Rename" })
 
 -- Diagnostics
 -- TODO: Make this better
-vim.keymap.set("n", "<leader>vd", function()
+vim.keymap.set("n", "<leader>td", function()
 	local vt = vim.diagnostic.config().virtual_text
 	if vt then
 		vim.diagnostic.config({ virtual_text = false })
@@ -90,6 +90,7 @@ vim.keymap.set("n", "<leader>vd", function()
 		vim.diagnostic.config({
 			virtual_text = {
 				prefix = "",
-	  },
-  })  end
+			},
+		})
+	end
 end, { silent = true, noremap = true, desc = "Toggle diagnostic" })

@@ -11,7 +11,7 @@ return {
 	{
 		dir = vim.fn.stdpath("config"),
 		config = function()
-			-- vim.lsp.enable("basedpyright") -- has rename capabilities(?)
+			vim.lsp.enable("basedpyright")
 			vim.lsp.enable("intelephense") -- only needed for one project
 			vim.lsp.enable("bashls")
 			vim.lsp.enable("docker-language-server")
@@ -19,7 +19,6 @@ return {
 			vim.lsp.enable("helmls")
 			vim.lsp.enable("lua_ls")
 			vim.lsp.enable("ruff")
-			vim.lsp.enable("ty")
 			vim.lsp.enable("json-lsp")
 			vim.lsp.enable("yaml-language-server")
 

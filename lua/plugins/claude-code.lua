@@ -1,17 +1,18 @@
 return {
-  "greggh/claude-code.nvim",
-  dependencies = {
-    "nvim-lua/plenary.nvim", -- Required for git operations
-  },
-  lazy = true,
-  config = function()
-    require("claude-code").setup({})
-    local wk = require("which-key")
-    wk.add({ "<leader>tc", group = "[C]laude" })
-  end,
-  keys = {
-    { "<leader>tcc", "<cmd>ClaudeCode<cr>", mode = "n", desc = "Claude Code" },
-    { "<leader>tcC", "<cmd>ClaudeCodeContinue<cr>", mode = "n", desc = "Claude Code Continue" },
-    { "<leader>tcV", "<cmd>ClaudeCodeVerbose<cr>", mode = "n", desc = "Claude Code Verbose" },
-  },
+	"greggh/claude-code.nvim",
+	dependencies = {
+		"nvim-lua/plenary.nvim", -- Required for git operations
+	},
+	lazy = true,
+	opts = {},
+	config = function(_, opts)
+		require("claude-code").setup({ opts })
+
+		local wk = require("which-key")
+		wk.add({ "<leader>c", group = "[C]laude" })
+
+		vim.keymap.set("n", "<leader>cc", "<cmd>ClaudeCode<cr>", { desc = "Claude Code" })
+		vim.keymap.set("n", "<leader>cC", "<cmd>ClaudCodeContinue<cr>", { desc = "Claude Code Continue" })
+	end,
+	keys = {},
 }

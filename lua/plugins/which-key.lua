@@ -9,17 +9,19 @@ return {
 				{ "<leader>b", group = "[B]uffers" },
 				{ "<leader>d", group = "[D]ebug" },
 				{ "<leader>h", group = "[H]arpoon" },
+				{ "<leader>l", group = "[L]oad Plugin" },
 				{ "<leader>s", group = "[S]earch" },
-				{ "<leader>t", group = "[T]ools" },
-				{ "<leader>v", group = "[V]isual Toggles" },
+				{ "<leader>t", group = "[T]oggle" },
 				{ "<leader>w", group = "[W]indows" },
 				{ "g", group = "+Go To" },
-				-- nested groupings
-				{ "<leader>tc", group = "[C]laude" },
-				{ "<leader>tu", group = "[U]V" },
 			})
 		end,
 		keys = {
+			{
+				"<leader>lc",
+				"<cmd>lua require('claude-code')<cr>",
+				desc = "Load Claude",
+			},
 			{
 				"<leader>?",
 				function()
@@ -30,7 +32,7 @@ return {
 			{
 				"<leader>tl",
 				"<cmd>Lazy<cr>",
-				desc = "Lazy: UI",
+				desc = "Toggle: Lazy UI",
 			},
 		},
 	},
