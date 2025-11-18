@@ -6,13 +6,13 @@ return {
 	lazy = true,
 	opts = {},
 	config = function(_, opts)
-		require("claude-code").setup({ opts })
+		require("claude-code").setup(opts)
 
 		local wk = require("which-key")
 		wk.add({ "<leader>c", group = "[C]laude" })
 
 		vim.keymap.set("n", "<leader>cc", "<cmd>ClaudeCode<cr>", { desc = "Claude Code" })
-		vim.keymap.set("n", "<leader>cC", "<cmd>ClaudCodeContinue<cr>", { desc = "Claude Code Continue" })
+		vim.keymap.set("n", "<leader>cC", "<cmd>ClaudeCodeContinue<cr>", { desc = "Claude Code Continue" })
 	end,
 	keys = {},
 }
