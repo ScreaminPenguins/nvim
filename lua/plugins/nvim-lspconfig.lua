@@ -12,7 +12,7 @@ return {
 		dir = vim.fn.stdpath("config"),
 		config = function()
 			vim.lsp.enable("basedpyright")
-			vim.lsp.enable("intelephense") -- only needed for one project
+			vim.lsp.enable("intelephense") -- PHP: only needed for one project
 			vim.lsp.enable("bashls")
 			vim.lsp.enable("docker-language-server")
 			vim.lsp.enable("gopls")

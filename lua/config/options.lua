@@ -5,6 +5,7 @@ opt.cmdheight = 0
 opt.clipboard = "unnamedplus"
 opt.confirm = true
 opt.expandtab = true
+opt.number = true
 opt.relativenumber = true
 opt.shiftwidth = 4
 opt.tabstop = 4
