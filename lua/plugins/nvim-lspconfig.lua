@@ -12,15 +12,17 @@ return {
 		dir = vim.fn.stdpath("config"),
 		config = function()
 			vim.lsp.enable("basedpyright")
-			vim.lsp.enable("intelephense") -- PHP: only needed for one project
 			vim.lsp.enable("bashls")
+			vim.lsp.enable("buf_ls")
 			vim.lsp.enable("docker-language-server")
 			vim.lsp.enable("gopls")
 			vim.lsp.enable("helmls")
+			vim.lsp.enable("intelephense") -- PHP: only needed for one project
+			vim.lsp.enable("json-lsp")
 			vim.lsp.enable("lua_ls")
 			vim.lsp.enable("ruff")
-			vim.lsp.enable("json-lsp")
 			vim.lsp.enable("yaml-language-server")
+			vim.lsp.enable("jdtls")
 
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp", { clear = true }),

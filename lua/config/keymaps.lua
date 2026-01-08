@@ -1,6 +1,5 @@
 local set = vim.keymap.set
 
--- TODO: handle unsaved changes
 set("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
 
 -- Windows
@@ -58,27 +57,6 @@ set("n", "<leader>bb", "<cmd>b#<cr>", { noremap = true, desc = "Previous Buffer"
 
 -- Rename symbol
 set("n", "<leader>rs", vim.lsp.buf.rename, { desc = "LSP Rename" })
-
--- -- Better search highlighting
--- set("n", "/", function()
--- 	vim.api.nvim_feedkeys("/", "n", true)
--- 	vim.api.nvim_create_autocmd("CmdlineLeave", {
--- 		pattern = "/",
--- 		once = true,
--- 		callback = function()
--- 			vim.defer_fn(function()
--- 				vim.cmd("nohlsearch")
--- 			end, 50)
--- 		end,
--- 	})
--- end, { noremap = true, desc = "Search Forward" })
---
--- set("n", "n", function()
--- 	vim.cmd("normal! n")
--- 	vim.defer_fn(function()
--- 		vim.cmd("nohlsearch")
--- 	end, 1000)
--- end, { noremap = true, desc = "Next Match" })
 
 -- Diagnostics
 -- TODO: Make this better
