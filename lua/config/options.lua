@@ -10,3 +10,5 @@ opt.relativenumber = true
 opt.shiftwidth = 4
 opt.tabstop = 4
 opt.wrap = false
+opt.list = true
+opt.listchars = { tab = "» ", trail = "·", eol = "$" }
