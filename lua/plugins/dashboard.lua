@@ -114,7 +114,7 @@ return {
 						{
 							action = ":q",
 							desc = "Quit",
-							icon = " ",
+							icon = "  ",
 							key = "q",
 						},
 					},
@@ -132,5 +132,13 @@ return {
 			})
 		end,
 		dependencies = { { "nvim-tree/nvim-web-devicons" } },
+		keys = {
+			{
+				"<leader>tD",
+				"<cmd>Dashboard<CR>",
+				mode = "n",
+				desc = "Open Dashboard",
+			},
+		},
 	},
 }

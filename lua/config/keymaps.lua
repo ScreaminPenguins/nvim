@@ -72,3 +72,6 @@ vim.keymap.set("n", "<leader>td", function()
 		})
 	end
 end, { silent = true, noremap = true, desc = "Toggle diagnostic" })
+
+-- Toggle listchars
+vim.keymap.set("n", "<leader>ts", ":set list!<CR>", { desc = "Toggle listchars" })
