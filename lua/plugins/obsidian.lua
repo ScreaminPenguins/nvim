@@ -17,7 +17,7 @@ return {
 			workspaces = {
 				{
 					name = "work",
-					path = "~/Repositories/work/McWorkVault/McWork/",
+					path = "/Users/ash_gent/Documents/McWork",
 				},
 			},
 		},
