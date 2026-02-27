@@ -3,11 +3,8 @@ local set = vim.keymap.set
 set("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
 
 -- Windows
-set("n", "<C-h>", "<C-w>h", { noremap = true, silent = true })
-set("n", "<C-j>", "<C-w>j", { noremap = true, silent = true })
-set("n", "<C-k>", "<C-w>k", { noremap = true, silent = true })
-set("n", "<C-l>", "<C-w>l", { noremap = true, silent = true })
 set("n", "<leader>|", "<C-W>v", { noremap = true, desc = "Split Window Right" })
+set("n", "<leader>-", "<CMD>:split<CR>", { noremap = true, desc = "Split Window Below" })
 set("n", "<leader>wd", "<C-W>c", { noremap = true, desc = "Close Window" })
 
 -- Buffers
@@ -75,3 +72,26 @@ end, { silent = true, noremap = true, desc = "Toggle diagnostic" })
 
 -- Toggle listchars
 vim.keymap.set("n", "<leader>ts", ":set list!<CR>", { desc = "Toggle listchars" })
+
+-- Tmux sessionizer
+set("n", "<C-f>", function()
+	local buf = vim.api.nvim_create_buf(false, true)
+	local width = math.floor(vim.o.columns * 0.8)
+	local height = math.floor(vim.o.lines * 0.8)
+	local win = vim.api.nvim_open_win(buf, true, {
+		relative = "editor",
+		width = width,
+		height = height,
+		row = math.floor((vim.o.lines - height) / 2),
+		col = math.floor((vim.o.columns - width) / 2),
+		style = "minimal",
+		border = "rounded",
+	})
+	vim.fn.jobstart(os.getenv("HOME") .. "/.local/scripts/tmux-sessionizer", {
+		term = true,
+		on_exit = function()
+			vim.api.nvim_win_close(win, true)
+		end,
+	})
+	vim.cmd("startinsert")
+end, { desc = "Tmux Sessionizer" })

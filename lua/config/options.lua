@@ -8,6 +8,7 @@ opt.expandtab = true
 opt.number = true
 opt.relativenumber = true
 opt.shiftwidth = 4
+opt.splitbelow = true
 opt.tabstop = 4
 opt.wrap = false
 opt.list = false
