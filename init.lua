@@ -9,5 +9,8 @@ require("config.autocmds")
 vim.diagnostic.config({
 	virtual_text = {
 		prefix = "",
-  }
+	},
 })
+
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
