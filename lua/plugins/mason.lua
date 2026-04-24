@@ -4,7 +4,8 @@ return {
 		build = ":MasonUpdate",
 		opts = {
 			ensure_installed = {
-				"basedpyright",
+				"ty", -- Testing this vs basedpyright
+				-- "basedpyright",
 				"bash-language-server",
 				"debugpy",
 				"docker-language-server",

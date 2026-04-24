@@ -11,7 +11,8 @@ return {
 	{
 		dir = vim.fn.stdpath("config"),
 		config = function()
-			vim.lsp.enable("basedpyright")
+			vim.lsp.enable("ty")
+			-- vim.lsp.enable("basedpyright")
 			vim.lsp.enable("bashls")
 			vim.lsp.enable("buf_ls")
 			vim.lsp.enable("docker-language-server")

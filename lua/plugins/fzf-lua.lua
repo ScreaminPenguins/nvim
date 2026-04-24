@@ -5,6 +5,25 @@ return {
 		lazy = false,
 		config = function()
 			require("fzf-lua").setup({
+				winopts = {
+					preview = {
+						layout = "vertical",
+						vertical = "down:80%",
+						winopts = {
+							cursorcolumn = false,
+							cursorline = true,
+							cursorlineopt = "both",
+							foldenable = false,
+							foldmethod = "manual",
+							list = false,
+							number = true,
+							relativenumber = false,
+							scrolloff = -1,
+							signcolumn = "no",
+							winblend = 0,
+						},
+					},
+				},
 				files = {
 					cwd_prompt = false,
 				},
@@ -15,7 +34,6 @@ return {
 				},
 			})
 		end,
-		opts = {},
 		keys = {
 			{
 				"<leader>sf",
@@ -25,7 +43,7 @@ return {
 			},
 			{
 				"<leader>/",
-				"<cmd>FzfLua live_grep<cr>",
+				"<cmd>FzfLua live_grep winopts.preview.layout=vertical winopts.preview.vertical=down:80%<cr>",
 				mode = "n",
 				desc = "Grep Project",
 			},
@@ -55,7 +73,7 @@ return {
 			},
 			{
 				"<leader>ss",
-				"<cmd>lua FzfLua.lsp_document_symbols({prompt='Symbols❯ '})<cr>",
+				"<cmd>FzfLua lsp_live_workspace_symbols<cr>",
 				mode = "n",
 				desc = "Document Symbols",
 			},

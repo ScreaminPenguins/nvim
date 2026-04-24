@@ -246,8 +246,8 @@ function M.setup(opts)
 	config.use_fzf = opts.use_fzf or false
 
 	local keys = vim.tbl_deep_extend("force", {
-		toggle = "<leader>ns",
-		list = "<leader>nl",
+		toggle = "<leader>tn",
+		list = "<leader>ln",
 		delete = "<leader>nd",
 	}, opts.keys or {})
 

@@ -150,3 +150,18 @@ set("t", "<C-T>", function()
 		term_win = nil
 	end
 end, { desc = "Close floating terminal" })
+
+-- Open git remote URL in browser
+set("n", "<leader>go", function()
+	local remote = vim.fn.system("git remote get-url origin 2>/dev/null"):gsub("\n", "")
+	if remote == "" then
+		vim.notify("No git remote found", vim.log.levels.WARN)
+		return
+	end
+	-- Convert SSH format (git@github.com:user/repo.git) to HTTPS
+	local url = remote
+		:gsub("^git@([^:]+):", "https://%1/")
+		:gsub("%.git$", "")
+	vim.fn.jobstart({ "open", url }, { detach = true })
+	vim.notify("Opening: " .. url, vim.log.levels.INFO)
+end, { desc = "Open git remote in browser" })
