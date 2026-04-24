@@ -42,7 +42,7 @@ vim.pack.add({
 	-- ---------------------------------------------------------------------------
 	-- Navigation & Search
 	-- ---------------------------------------------------------------------------
-	"https://github.com/nvim-neo-tree/neo-tree.nvim",
+	{ src = "https://github.com/nvim-neo-tree/neo-tree.nvim", version = "v3.x" },
 	"https://github.com/ibhagwan/fzf-lua",
 	"https://github.com/chentoast/marks.nvim",
 	"https://github.com/christoomey/vim-tmux-navigator",
@@ -55,7 +55,7 @@ vim.pack.add({
 	--       See plugins/treesitter.lua for parser configuration.
 	-- ---------------------------------------------------------------------------
 	"https://github.com/nvim-treesitter/nvim-treesitter",
-	"https://github.com/OXY2DEV/markview.nvim",
+	{ src = "https://github.com/OXY2DEV/markview.nvim", load = false },
 
 	-- ---------------------------------------------------------------------------
 	-- LSP stack
@@ -63,7 +63,7 @@ vim.pack.add({
 	--        blink.cmp.get_lsp_capabilities() which must be available.
 	-- ---------------------------------------------------------------------------
 	"https://github.com/rafamadriz/friendly-snippets", -- snippets source for blink
-	{ src = "https://github.com/saghen/blink.cmp", version = "1.*" },
+	{ src = "https://github.com/saghen/blink.cmp", version = "v1" },
 	"https://github.com/neovim/nvim-lspconfig",
 	"https://github.com/mason-org/mason.nvim",
 	"https://github.com/stevearc/conform.nvim",
@@ -83,12 +83,11 @@ vim.pack.add({
 	-- ---------------------------------------------------------------------------
 	-- Language & domain-specific
 	-- ---------------------------------------------------------------------------
-	"https://github.com/linux-cultist/venv-selector.nvim",
-	"https://github.com/epwalsh/obsidian.nvim",
+	{ src = "https://github.com/linux-cultist/venv-selector.nvim", load = false },
+	{ src = "https://github.com/epwalsh/obsidian.nvim", load = false },
 
-	-- TODO: confirm URLs when working through these plugin files
-	-- "https://github.com/???/dbtpal",
-	-- "https://github.com/???/vim-helm",
+	{ src = "https://github.com/PedramNavid/dbtpal", load = false },
+	{ src = "https://github.com/towolf/vim-helm", load = false },
 
 	-- ---------------------------------------------------------------------------
 	-- Debugger (DAP)

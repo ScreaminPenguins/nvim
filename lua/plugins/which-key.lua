@@ -1,39 +1,18 @@
-return {
-	{
-		"folke/which-key.nvim",
-		event = "VeryLazy",
-		opts = {},
-		config = function()
-			local wk = require("which-key")
-			wk.add({
-				{ "<leader>b", group = "[B]uffers" },
-				{ "<leader>d", group = "[D]ebug" },
-				{ "<leader>h", group = "[H]arpoon" },
-				{ "<leader>l", group = "[L]oad Plugin" },
-				{ "<leader>s", group = "[S]earch" },
-				{ "<leader>t", group = "[T]oggle" },
-				{ "<leader>w", group = "[W]indows" },
-				{ "g", group = "+Go To" },
-			})
-		end,
-		keys = {
-			{
-				"<leader>lc",
-				"<cmd>lua require('claude-code')<cr>",
-				desc = "Load Claude",
-			},
-			{
-				"<leader>?",
-				function()
-					require("which-key").show({ global = false })
-				end,
-				desc = "Buffer Local Keymaps (which-key)",
-			},
-			{
-				"<leader>tl",
-				"<cmd>Lazy<cr>",
-				desc = "Toggle: Lazy UI",
-			},
-		},
-	},
-}
+-- which-key.nvim — keymap popup hint UI
+-- https://github.com/folke/which-key.nvim
+
+require("which-key").setup({})
+
+require("which-key").add({
+	{ "<leader>b", group = "Buffers" },
+	{ "<leader>d", group = "Debug" },
+	{ "<leader>h", group = "Harpoon" },
+	{ "<leader>s", group = "Search" },
+	{ "<leader>t", group = "Toggle" },
+	{ "<leader>w", group = "Windows" },
+	{ "g", group = "Go to" },
+})
+
+vim.keymap.set("n", "<leader>?", function()
+	require("which-key").show({ global = false })
+end, { desc = "Buffer keymaps (which-key)" })

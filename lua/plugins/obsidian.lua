@@ -1,12 +1,18 @@
-return {
-	{
-		"obsidian-nvim/obsidian.nvim",
-		version = "*", -- recommended, use latest release instead of latest commit
-		cond = vim.fn.getcwd() == vim.fn.expand("/Users/ash_gent/Documents/McWork"),
-		-- ft = "markdown",
-		---@module 'obsidian'
-		---@type obsidian.config
-		opts = {
+-- obsidian.nvim — Markdown note-taking integrated with Obsidian vaults
+-- https://github.com/epwalsh/obsidian.nvim
+--
+-- Loaded lazily on the first markdown buffer (load = false in pack.lua).
+-- Workspace detection is automatic — commands activate only when the current
+-- file lives inside a configured workspace path
+
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("obsidian-load", { clear = true }),
+	pattern = "markdown",
+	once = true,
+	callback = function()
+		vim.cmd.packadd("obsidian.nvim")
+
+		require("obsidian").setup({
 			legacy_commands = false,
 			templates = {
 				folder = "Templates",
@@ -14,11 +20,13 @@ return {
 				time_format = "HH:mm",
 				substitutions = {
 					date = function(_, suffix)
-						local format = suffix or Obsidian.opts.templates.date_format
+						local client = require("obsidian").get_client()
+						local format = suffix or client.opts.templates.date_format
 						return require("obsidian.util").format_date(os.time(), format)
 					end,
 					time = function(_, suffix)
-						local format = suffix or Obsidian.opts.templates.time_format
+						local client = require("obsidian").get_client()
+						local format = suffix or client.opts.templates.time_format
 						return require("obsidian.util").format_date(os.time(), format)
 					end,
 					title = function(ctx)
@@ -48,18 +56,13 @@ return {
 					path = "/Users/ash_gent/Documents/McWork",
 				},
 			},
-		},
-		config = function(_, opts)
-			require("obsidian").setup(opts)
+		})
 
-			local wk = require("which-key")
-			wk.add({
-				{ "<leader>n", group = "[N]otes" },
-			})
+		require("which-key").add({
+			{ "<leader>n", group = "Notes" },
+		})
 
-			-- Register keymaps after plugin loads
-			vim.keymap.set("n", "<leader>nd", "<cmd>ObsidianToday<cr>", { desc = "New daily note" })
-			vim.keymap.set("n", "<leader>nft", "<cmd>ObsidianNewFromTemplate<cr>", { desc = "New note from template" })
-		end,
-	},
-}
+		vim.keymap.set("n", "<leader>nd", "<cmd>ObsidianToday<cr>", { desc = "Notes: daily note" })
+		vim.keymap.set("n", "<leader>nft", "<cmd>ObsidianNewFromTemplate<cr>", { desc = "Notes: new from template" })
+	end,
+})

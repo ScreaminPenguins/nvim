@@ -1,19 +1,13 @@
-return {
-	"OXY2DEV/markview.nvim",
-	lazy = false,
+-- markview.nvim — rendered markdown preview inside Neovim buffers
+-- https://github.com/OXY2DEV/markview.nvim
 
-	priority = 49,
-	ft = { "markdown" },
-	config = function(_, opts)
-		require("markview").setup({ opts })
-
-		vim.keymap.set("n", "<leader>tm", "<cmd>Markview toggle<cr>", { desc = "Toggle Markview" })
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("markview-load", { clear = true }),
+	pattern = "markdown",
+	once = true,
+	callback = function()
+		vim.cmd.packadd("markview.nvim")
+		require("markview").setup({})
+		vim.keymap.set("n", "<leader>tm", "<cmd>Markview toggle<cr>", { desc = "Toggle: Markview" })
 	end,
-	keys = {},
-
-	-- For blink.cmp's completion
-	-- source
-	dependencies = {
-		"saghen/blink.cmp",
-	},
-}
+})

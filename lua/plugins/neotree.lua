@@ -1,29 +1,16 @@
-return {
-	{
-		"nvim-neo-tree/neo-tree.nvim",
-		branch = "v3.x",
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"MunifTanjim/nui.nvim",
-			"nvim-tree/nvim-web-devicons", -- optional, but recommended
-		},
-		lazy = false, -- neo-tree will lazily load itself
-		config = function(_, opts)
-			require("neo-tree").setup(opts)
+-- neo-tree.nvim — file explorer sidebar
+-- https://github.com/nvim-neo-tree/neo-tree.nvim
+--
+-- Pinned to v3.x branch (version = "v3.x" in pack.lua).
 
-			vim.keymap.set("n", "<leader>te", "<cmd>Neotree toggle<cr>", { desc = "Toggle Neotree" })
-		end,
-		---@module 'neo-tree'
-		---@type neotree.Config
-		opts = {
-			filesystem = {
-				filtered_items = {
-					hide_dotfiles = false,
-					hide_gitignored = false,
-					hide_by_name = {},
-				},
-			},
+require("neo-tree").setup({
+	filesystem = {
+		filtered_items = {
+			hide_dotfiles = false,
+			hide_gitignored = false,
+			hide_by_name = {},
 		},
-		keys = {},
 	},
-}
+})
+
+vim.keymap.set("n", "<leader>te", "<cmd>Neotree toggle<cr>", { desc = "Toggle: Neotree" })

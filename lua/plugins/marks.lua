@@ -1,5 +1,4 @@
-return {
-  "chentoast/marks.nvim",
-  event = "VeryLazy",
-  opts = {},
-}
+-- marks.nvim — visible marks in the sign column with motions
+-- https://github.com/chentoast/marks.nvim
+
+require("marks").setup({})

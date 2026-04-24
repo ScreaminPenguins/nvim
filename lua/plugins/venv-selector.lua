@@ -1,19 +1,24 @@
-return {
-	"linux-cultist/venv-selector.nvim",
-	dependencies = {
-		"neovim/nvim-lspconfig",
-		"ibhagwan/fzf-lua",
-	},
-	lazy = true,
-	ft = { "python" }, -- Load when opening Python files
-	config = function(_, opts)
-		require("venv-selector").setup(opts)
+---@diagnostic disable: missing-fields
+-- venv-selector.nvim — Python virtual environment picker
+-- https://github.com/linux-cultist/venv-selector.nvim
 
-		vim.keymap.set("n", "<leader>vs", "<cmd>VenvSelect<cr>", { desc = "Venv Select" })
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("venv-selector-load", { clear = true }),
+	pattern = "python",
+	once = true,
+	callback = function()
+		vim.cmd.packadd("venv-selector.nvim")
+
+		require("venv-selector").setup({
+			options = {
+				notify_user_on_venv_activation = true,
+			},
+			search = {},
+			hooks = {
+				require("venv-selector.hooks").dynamic_python_lsp_hook,
+			},
+		})
+
+		vim.keymap.set("n", "<leader>vs", "<cmd>VenvSelect<cr>", { desc = "Select Python Venv" })
 	end,
-	keys = {},
-	opts = { -- this can be an empty lua table - just showing below for clarity.
-		search = {}, -- if you add your own searches, they go here.
-		options = {}, -- if you add plugin options, they go here.
-	},
-}
+})
