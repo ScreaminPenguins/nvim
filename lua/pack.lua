@@ -88,17 +88,18 @@ vim.pack.add({
 
 	{ src = "https://github.com/PedramNavid/dbtpal", load = false },
 	{ src = "https://github.com/towolf/vim-helm", load = false },
+	{ src = "https://github.com/thalesmello/lkml.vim", load = false },
+	{ src = "https://github.com/benomahony/uv.nvim", load = false },
 
 	-- ---------------------------------------------------------------------------
 	-- Debugger (DAP)
-	-- TODO: confirm URLs when working through mason.lua
 	-- ---------------------------------------------------------------------------
-	-- "https://github.com/mfussenegger/nvim-dap",
-	-- "https://github.com/rcarriga/nvim-dap-ui",
-	-- "https://github.com/nvim-neotest/nvim-nio",
-	-- "https://github.com/mfussenegger/nvim-dap-python",
-	-- "https://github.com/theHamsta/nvim-dap-virtual-text",
-	-- "https://github.com/jay-babu/mason-nvim-dap.nvim",
+	"https://github.com/mfussenegger/nvim-dap",
+	"https://github.com/rcarriga/nvim-dap-ui",
+	"https://github.com/nvim-neotest/nvim-nio",
+	"https://github.com/mfussenegger/nvim-dap-python",
+	"https://github.com/theHamsta/nvim-dap-virtual-text",
+	"https://github.com/jay-babu/mason-nvim-dap.nvim",
 
 	-- ---------------------------------------------------------------------------
 	-- Lua development

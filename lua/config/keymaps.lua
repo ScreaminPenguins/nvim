@@ -74,7 +74,7 @@ set("n", "<leader>bd", function()
   end
 end, { desc = "Close Buffer" })
 
-set("n", "<leader>bb", "<cmd>b#<cr>", { noremap = true, desc = "Previous Buffer" })
+set("n", "<leader>bb", "<cmd>b#<cr>", { desc = "Previous Buffer" })
 
 -- -----------------------------------------------------------------------------
 -- Diagnostics
@@ -90,15 +90,12 @@ vim.keymap.set("n", "<leader>td", function()
       },
     })
   end
-end, { silent = true, noremap = true, desc = "Toggle diagnostic" })
-
--- Toggle listchars
-vim.keymap.set("n", "<leader>ts", ":set list!<CR>", { desc = "Toggle listchars" })
+end, { desc = "Toggle: diagnostics" })
 
 -- -----------------------------------------------------------------------------
 -- UI toggles
 -- -----------------------------------------------------------------------------
-set("n", "<leader>ts", ":set list!<cr>", { desc = "Toggle Listchars" })
+set("n", "<leader>ts", ":set list!<cr>", { desc = "Toggle: listchars" })
 
 -- -----------------------------------------------------------------------------
 -- Tmux sessionizer

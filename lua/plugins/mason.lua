@@ -11,9 +11,8 @@ local ensure_installed = {
   "helm-ls",               -- Helm
   "intelephense",          -- PHP
   "jdtls",                 -- Java
-  "lua-language-server",   -- Lua
-  "pbls",                  -- Protobuf
-  "yaml-language-server",  -- Yaml
+  "lua-language-server",    -- Lua
+  "yaml-language-server",   -- YAML
 
   -- Linters / formatters
   "ruff",    -- Python
@@ -49,4 +48,4 @@ mr.refresh(function()
   end
 end)
 
-vim.keymap.set("n", "<leader>tM", "<cmd>Mason<cr>", { desc = "Mason" })
+vim.keymap.set("n", "<leader>tM", "<cmd>Mason<cr>", { desc = "Toggle: Mason" })

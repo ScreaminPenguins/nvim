@@ -49,10 +49,10 @@ require("plugins.markview")
 
 -- LSP stack
 require("plugins.blink-cmp")
-require("plugins.nvim-lspconfig")
 require("plugins.mason")
 require("plugins.conform")
 require("plugins.lazydev")
+require("plugins.dap")
 
 -- Git
 require("plugins.gitsigns")
@@ -66,6 +66,7 @@ require("plugins.claude-code")
 
 -- Language / domain-specific
 require("plugins.venv-selector")
+require("plugins.uv")
 require("plugins.obsidian")
 require("plugins.dbtpal")
 require("plugins.lookml")
@@ -85,9 +86,3 @@ require("config.keymaps")
 -- Global autocommands.
 require("config.autocmds")
 
--- bootstrap lazy.nvim, LazyVim and your plugins
--- require("config.lazy")
--- require("config.options")
--- require("config.lsp")
--- require("config.keymaps")
--- require("config.autocmds")

@@ -33,15 +33,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
 -- Moved here from plugins/nvim-lspconfig.lua (the dir = stdpath hack).
 vim.lsp.enable({
   "bashls",                 -- Shell
-  "buf_ls",                 -- Protobuf
-  "docker-language-server", -- Docker
-  "gopls",                  -- GoLang
-  "helmls",                 -- Helm
-  "intelephense",           -- PHP (only needed for other team projects)
-  "jdtls",                  -- Java
-  "json-lsp",               -- JSON
-  "lua_ls",                 -- Lua
-  "ruff",                   -- Python linter/formatter
-  "ty",                     -- Python (replacing basedpyright)
-  "yaml-language-server",
+  "buf_ls",       -- Protobuf
+  "dockerls",     -- Docker
+  "gopls",        -- Go
+  "helm_ls",      -- Helm
+  "intelephense", -- PHP
+  "jdtls",        -- Java (aspirational — config incomplete)
+  "jsonls",       -- JSON
+  "lua_ls",       -- Lua
+  "ruff",         -- Python linter/formatter
+  "ty",           -- Python type checker
+  "yamlls",       -- YAML
 })

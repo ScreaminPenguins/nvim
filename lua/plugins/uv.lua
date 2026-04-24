@@ -1,27 +1,29 @@
-return {
-	{
-		"benomahony/uv.nvim",
-		opts = {
-			picker_integration = true,
-		},
-		lazy = true,
-		ft = { "python" },
-		config = function(_, opts)
-			require("uv").setup(opts)
+-- uv.nvim — uv package manager integration
+-- https://github.com/benomahony/uv.nvim
+--
+-- Loaded lazily on the first Python buffer (load = false in pack.lua).
 
-			local wk = require("which-key")
-			wk.add({
-				{ "<leader>u", group = "[U]v" },
-			})
-			vim.keymap.set("n", "<leader>ui", "<cmd>UVInit<cr>", { desc = "UV init" })
-			vim.keymap.set(
-				"n",
-				"<leader>ua",
-				"<cmd>lua vim.ui.input({prompt = 'Enter package name: '}, function(input) if input and input ~= '' then require('uv').run_command('uv add ' .. input) end end)<CR>",
-				{ desc = "UV add dependency" }
-			)
-			vim.keymap.set("n", "<leader>ur", "UVRunFile", { desc = "UV run file" })
-		end,
-		keys = {},
-	},
-}
+vim.api.nvim_create_autocmd("FileType", {
+  group   = vim.api.nvim_create_augroup("uv-load", { clear = true }),
+  pattern = "python",
+  once    = true,
+  callback = function()
+    vim.cmd.packadd("uv.nvim")
+
+    require("uv").setup({ picker_integration = true })
+
+    require("which-key").add({
+      { "<leader>u", group = "uv" },
+    })
+
+    vim.keymap.set("n", "<leader>ui", "<cmd>UVInit<cr>", { desc = "uv: init project" })
+    vim.keymap.set("n", "<leader>ua", function()
+      vim.ui.input({ prompt = "Package name: " }, function(input)
+        if input and input ~= "" then
+          require("uv").run_command("uv add " .. input)
+        end
+      end)
+    end, { desc = "uv: add dependency" })
+    vim.keymap.set("n", "<leader>ur", "<cmd>UVRunFile<cr>", { desc = "uv: run file" })
+  end,
+})
