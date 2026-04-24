@@ -1,5 +1,5 @@
 local vanilla_gorilla = {
-	[[
+  [[
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣤⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢾⣿⣿⣿⣿⣄⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣴⣿⣿⣶⣄⠹⣿⣿⣿⡟⠁⠀⠀
@@ -14,7 +14,7 @@ local vanilla_gorilla = {
 ⠀⢠⣿⣿⣿⣿⣟⠀⠀⢿⣿⣿⣿⡄⠀⠀⢀⣿⣿⡟⠃⣸⣿⣿⣿⣿⡇⠀⠀⠀
 ⠀⠘⠛⠛⠛⠛⠛⠛⠀⠘⠛⠛⠛⠛⠓⠀⠛⠛⠛⠃⠘⠛⠛⠛⠛⠛⠃⠀⠀⠀
   ]],
-	[[
+  [[
 ⠀⠀⢀⡀⠤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⢀⣿⣿⣦⣌⣳⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⣞⣛⣿⣿⠻⠿⣿⣶⠦⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -27,7 +27,7 @@ local vanilla_gorilla = {
 ⠀⢰⠀⢸⣿⣿⠃⠘⣿⣿⣿⠀⠀⢰⣿⣿⣿⠁⠀⠈⠙⢿⣿⣦⣘⡀
 ⠀⠘⢿⣿⣿⣿⡄⠀⢻⣿⣿⡷⢠⣾⣿⣿⡏⠀⠀⠀⢀⣾⣿⣿⣿⠇
   ]],
-	[[
+  [[
  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⣶⣿⡿⣋⣁⣤⣤⣤⣤⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⡿⢛⡿⠿⠛⢋⣩⠥⠶⠿⠛⠛⠛⠻⠷⢶⣦⣄⡀⠀⠀⠀⠀⢀⣀⣤⣤⣄⡀⠀⠀⠀
@@ -56,7 +56,7 @@ local vanilla_gorilla = {
 ⠀⠀⠀⠀⠀⠀⠘⠿⠾⣿⣧⡾⠛⠛⢻⡟⢁⣤⣾⡏⢠⣿⠛⠛⠛⠉⠻⠛⠛⠻⣦⣙⣷⣤⣍⣿⡏⠙⢷⣬⣿⠻⠶⠿⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠉⠀⠀⠀⠈⠛⠋⠁⠘⠿⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
   ]],
-	[[
+  [[
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣟⠿⠿⠁⠻⣿⣿⣿⣿⡿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⡦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠛⠿⢿⣿⣿⣿⣿⣿⣿⣿
@@ -75,70 +75,57 @@ local vanilla_gorilla = {
   ]],
 }
 
-local header_pick = function(array)
-	math.randomseed(os.time())
-	return array[math.random(#array)]
+local pick_header = function(array)
+  math.randomseed(os.time())
+  return array[math.random(#array)]
 end
 
-return {
-	{
-		"nvimdev/dashboard-nvim",
-		event = "VimEnter",
-		opts = {},
-		config = function(_, opts)
-			require("dashboard").setup({ opts })
-			local fzf = require("fzf-lua")
-			require("dashboard").setup({
-				theme = "doom",
-				config = {
-					header = vim.split(header_pick(vanilla_gorilla), "\n"),
-					center = {
-						{
-							action = fzf.files,
-							desc = " Find Files",
-							icon = "󰈙 ",
-							key = "f",
-						},
-						{
-							action = fzf.grep_project,
-							desc = " Grep",
-							icon = " ",
-							key = "w",
-						},
-						{
-							action = ":lua FzfLua.files({cwd = '~/.config/nvim'})",
-							desc = " Configs",
-							icon = " ",
-							key = "c",
-						},
-						{
-							action = ":q",
-							desc = "Quit",
-							icon = "  ",
-							key = "q",
-						},
-					},
-					footer = {},
-					vertical_center = true,
-				},
-			})
+local fzf = require("fzf-lua")
 
-			vim.api.nvim_create_autocmd("FileType", {
-				pattern = "dashboard",
-				callback = function()
-					vim.opt_local.foldmethod = "manual"
-					vim.opt_local.foldenable = false
-				end,
-			})
-		end,
-		dependencies = { { "nvim-tree/nvim-web-devicons" } },
-		keys = {
-			{
-				"<leader>tD",
-				"<cmd>Dashboard<CR>",
-				mode = "n",
-				desc = "Open Dashboard",
-			},
-		},
-	},
-}
+require("dashboard").setup({
+  theme = "doom",
+  config = {
+    header = vim.split(pick_header(vanilla_gorilla), "\n"),
+    center = {
+      {
+        action = fzf.files,
+        desc = " Find Files",
+        icon = "󰈙 ",
+        key = "f",
+      },
+      {
+        action = fzf.grep_project,
+        desc = " Grep",
+        icon = " ",
+        key = "w",
+      },
+      {
+        action = function()
+          fzf.files({ cwd = vim.fn.expand("~/.config/nvim") })
+        end,
+        desc = " Configs",
+        icon = " ",
+        key = "c",
+      },
+      {
+        action = ":q",
+        desc = " Quit",
+        icon = "  ",
+        key = "q",
+      },
+    },
+    footer = {},
+    vertical_center = true,
+  },
+})
+
+-- Disable folding on the dashboard buffer
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "dashboard",
+  callback = function()
+    vim.opt_local.foldmethod = "manual"
+    vim.opt_local.foldenable = false
+  end,
+})
+
+vim.keymap.set("n", "<leader>tD", "<cmd>Dashboard<cr>", { desc = "Open Dashboard" })
