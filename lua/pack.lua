@@ -100,10 +100,4 @@ vim.pack.add({
 	"https://github.com/mfussenegger/nvim-dap-python",
 	"https://github.com/theHamsta/nvim-dap-virtual-text",
 	"https://github.com/jay-babu/mason-nvim-dap.nvim",
-
-	-- ---------------------------------------------------------------------------
-	-- Lua development
-	-- ---------------------------------------------------------------------------
-	-- NOTE: lazydev is in the LSP stack section above.
-	-- No entry for mason-lspconfig — removed, was unused.
 })
