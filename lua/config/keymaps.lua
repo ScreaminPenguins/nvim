@@ -31,6 +31,13 @@ set("n", "<leader>wm", function()
 end, { desc = "Toggle Maximize Window" })
 
 -- -----------------------------------------------------------------------------
+-- Tabs
+-- -----------------------------------------------------------------------------
+set("n", "g[", "<cmd>tabprevious<cr>", { desc = "Previous Tab" })
+set("n", "g]", "<cmd>tabnext<cr>", { desc = "Next Tab" })
+set("n", "<leader>nt", "<cmd>tabnew<cr>", { desc = "New Tab" })
+
+-- -----------------------------------------------------------------------------
 -- Buffers
 -- -----------------------------------------------------------------------------
 -- Smart buffer close: prompts to save if modified, then switches to an
@@ -96,6 +103,22 @@ end, { desc = "Toggle: diagnostics" })
 -- UI toggles
 -- -----------------------------------------------------------------------------
 set("n", "<leader>ts", ":set list!<cr>", { desc = "Toggle: listchars" })
+
+-- Scroll-lock mode: cursorline on, cursor centred, j/k scroll the page.
+set("n", "<leader>tl", function()
+  if vim.b.scroll_lock then
+    vim.b.scroll_lock = false
+    vim.wo.cursorline = false
+    pcall(vim.keymap.del, "n", "j", { buffer = true })
+    pcall(vim.keymap.del, "n", "k", { buffer = true })
+  else
+    vim.b.scroll_lock = true
+    vim.wo.cursorline = true
+    vim.cmd("normal! zz")
+    vim.keymap.set("n", "j", "jzz", { buffer = true, desc = "Scroll down" })
+    vim.keymap.set("n", "k", "kzz", { buffer = true, desc = "Scroll up" })
+  end
+end, { desc = "Toggle: scroll-lock" })
 
 -- -----------------------------------------------------------------------------
 -- Tmux sessionizer

@@ -32,6 +32,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 -- these natively and merges them with the "*" capabilities above.
 -- Moved here from plugins/nvim-lspconfig.lua (the dir = stdpath hack).
 vim.lsp.enable({
+  "bqls",        -- BigQuery SQL
   "bashls",                 -- Shell
   "buf_ls",       -- Protobuf
   "dockerls",     -- Docker

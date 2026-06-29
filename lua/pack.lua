@@ -38,6 +38,8 @@ vim.pack.add({
 	"https://github.com/akinsho/bufferline.nvim",
 	"https://github.com/folke/which-key.nvim",
 	"https://github.com/folke/todo-comments.nvim",
+	"https://github.com/rcarriga/nvim-notify", -- notification backend for noice
+	"https://github.com/folke/noice.nvim",
 
 	-- ---------------------------------------------------------------------------
 	-- Navigation & Search
@@ -46,6 +48,7 @@ vim.pack.add({
 	"https://github.com/ibhagwan/fzf-lua",
 	"https://github.com/chentoast/marks.nvim",
 	"https://github.com/christoomey/vim-tmux-navigator",
+	"https://github.com/folke/flash.nvim",
 	{ src = "https://github.com/ThePrimeagen/harpoon", version = "harpoon2" },
 
 	-- ---------------------------------------------------------------------------

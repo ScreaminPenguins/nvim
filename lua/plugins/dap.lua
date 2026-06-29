@@ -25,7 +25,7 @@ dap.listeners.before.event_exited["dapui_config"] = function()
 end
 
 -- Virtual text — show variable values inline while debugging
-require("nvim-dap-virtual-text").setup()
+require("nvim-dap-virtual-text").setup({})
 
 -- Python — use uv as the python provider
 require("dap-python").setup("uv")

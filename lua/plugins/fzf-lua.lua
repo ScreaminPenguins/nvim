@@ -36,6 +36,7 @@ local fzf = require("fzf-lua")
 vim.keymap.set("n", "<leader>sf", function()
 	fzf.files({ prompt = "Files> " })
 end, { desc = "Search: files" })
+
 vim.keymap.set(
 	"n",
 	"<leader>/",

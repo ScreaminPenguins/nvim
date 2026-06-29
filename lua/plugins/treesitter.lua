@@ -28,7 +28,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
 	callback = function(ev)
 		local ok = pcall(vim.treesitter.start, ev.buf)
-		if ok then
+		if ok and ev.match ~= "sql" then
 			vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 		end
 	end,

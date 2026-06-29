@@ -30,19 +30,30 @@ vim.api.nvim_create_autocmd("FileType", {
 						return require("obsidian.util").format_date(os.time(), format)
 					end,
 					title = function(ctx)
-						return ctx.partial_note and ctx.partial_note:display_name()
+						return (ctx and ctx.partial_note and ctx.partial_note:display_name()) or ""
 					end,
 					id = function(ctx)
-						return ctx.partial_note and ctx.partial_note.id
+						return (ctx and ctx.partial_note and tostring(ctx.partial_note.id)) or ""
 					end,
 					path = function(ctx)
-						return ctx.partial_note and tostring(ctx.partial_note.path)
+						return (ctx and ctx.partial_note and tostring(ctx.partial_note.path)) or ""
 					end,
 					yesterday = function()
 						return os.date("%Y-%m-%d", os.time() - 86400)
 					end,
 					tomorrow = function()
 						return os.date("%Y-%m-%d", os.time() + 86400)
+					end,
+					-- parent folder name, e.g. "DE-2752" when inside Tickets/DE-2752/
+					ticket_id = function()
+						local path = vim.api.nvim_buf_get_name(0)
+						return path:match("([^/]+)/[^/]+%.md$") or ""
+					end,
+					-- project prefix extracted from ticket_id, e.g. "DE"
+					project_id = function()
+						local path = vim.api.nvim_buf_get_name(0)
+						local folder = path:match("([^/]+)/[^/]+%.md$") or ""
+						return folder:match("^([^%-]+)") or ""
 					end,
 				},
 			},

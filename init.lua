@@ -35,9 +35,11 @@ require("plugins.lualine")
 require("plugins.bufferline")
 require("plugins.which-key")
 require("plugins.todo-comments")
+require("plugins.noice")
 
 -- Navigation
 require("plugins.neotree")
+require("plugins.flash")
 require("plugins.fzf-lua")
 require("plugins.harpoon")
 require("plugins.marks")
@@ -85,4 +87,3 @@ require("config.keymaps")
 
 -- Global autocommands.
 require("config.autocmds")
-

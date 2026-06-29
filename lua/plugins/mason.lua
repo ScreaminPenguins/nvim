@@ -3,6 +3,7 @@
 
 local ensure_installed = {
   -- Language servers
+  "bqls",                  -- BigQuery SQL
   "ty",                    -- Python (replacing basedpyright)
   "bash-language-server",  -- Shell
   "buf",                   -- Protobuf (lspconfig server name: buf_ls)
