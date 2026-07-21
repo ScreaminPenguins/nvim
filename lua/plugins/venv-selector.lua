@@ -12,6 +12,11 @@ vim.api.nvim_create_autocmd("FileType", {
 		require("venv-selector").setup({
 			options = {
 				notify_user_on_venv_activation = true,
+				-- Don't let venv-selector reassign vim.notify (default: true).
+				-- Noice already owns vim.notify and renders through nvim-notify;
+				-- overriding it here triggers noice's "vim.notify has been
+				-- overwritten by another plugin" warning on every Python buffer.
+				override_notify = false,
 			},
 			search = {},
 			hooks = {

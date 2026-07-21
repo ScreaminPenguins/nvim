@@ -95,6 +95,16 @@ vim.pack.add({
 	{ src = "https://github.com/benomahony/uv.nvim", load = false },
 
 	-- ---------------------------------------------------------------------------
+	-- Database (vim-dadbod)
+	-- dadbod first — the UI and completion plugins depend on it.
+	-- Loaded eagerly (tiny vimscript plugins) so :DBUI is always available;
+	-- completion registers a blink.cmp source — see plugins/blink-cmp.lua.
+	-- ---------------------------------------------------------------------------
+	"https://github.com/tpope/vim-dadbod",
+	"https://github.com/kristijanhusak/vim-dadbod-ui",
+	"https://github.com/kristijanhusak/vim-dadbod-completion",
+
+	-- ---------------------------------------------------------------------------
 	-- Debugger (DAP)
 	-- ---------------------------------------------------------------------------
 	"https://github.com/mfussenegger/nvim-dap",

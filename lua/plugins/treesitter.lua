@@ -14,6 +14,7 @@ require("nvim-treesitter").install({
 	"lua",
 	"make",
 	"markdown",
+	"php",
 	"python",
 	"query",
 	"sql",

@@ -1,8 +1,12 @@
 -- noice - notifications/messages/cmdline windows
 -- https://github.com/folke/noice.nvim
 
--- nvim-notify is noice's notification backend. Configure it first so noice
--- picks up these settings when it routes notifications through the notify view.
+-- nvim-notify is noice's notification backend. Configure it here so noice picks
+-- up these settings when it routes notifications through the notify view.
+-- NOTE: do NOT set `vim.notify = require("notify")` here. Noice takes over
+-- `vim.notify` itself and renders through nvim-notify; assigning it manually
+-- makes noice's conflict checker flag vim.notify as "overwritten by another
+-- plugin" and emit a warning on startup.
 require("notify").setup({
 	stages = "fade_in_slide_out",
 	timeout = 3000,
@@ -10,7 +14,6 @@ require("notify").setup({
 	max_width = 80,
 	merge_duplicates = true, -- plugin default; set explicitly to satisfy lua_ls (its type annotation marks this field non-optional)
 })
-vim.notify = require("notify")
 
 require("noice").setup({
 	lsp = {

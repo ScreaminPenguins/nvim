@@ -10,6 +10,18 @@ vim.opt.wrap           = false   -- disable autowrap
 vim.opt.splitbelow     = true    -- horizontal splits open below
 vim.opt.splitright     = true    -- vertical splits open to the right
 
+-- Split dividers: use heavy box-drawing chars so the line between windows
+-- is easy to see (color is set via WinSeparator in the kanagawa config).
+vim.opt.fillchars = {
+  vert      = "┃",
+  horiz     = "━",
+  horizup   = "┻",
+  horizdown = "┳",
+  vertleft  = "┫",
+  vertright = "┣",
+  verthoriz = "╋",
+}
+
 
 -- Editing
 vim.opt.expandtab  = true        -- spaces instead of tabs

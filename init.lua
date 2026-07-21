@@ -71,6 +71,7 @@ require("plugins.venv-selector")
 require("plugins.uv")
 require("plugins.obsidian")
 require("plugins.dbtpal")
+require("plugins.vim-dadbod")
 require("plugins.lookml")
 require("plugins.vim-helm")
 

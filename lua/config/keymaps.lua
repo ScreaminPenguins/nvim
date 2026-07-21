@@ -20,15 +20,32 @@ set("n", "<leader>wd", "<C-W>c", { desc = "Close Window" })
 set("n", "<leader>wo", "<C-W>o", { desc = "Close Other Windows" })
 
 set("n", "<leader>wm", function()
-  local win = vim.api.nvim_get_current_win()
-  local win_width = vim.api.nvim_win_get_width(win)
-  if win_width >= vim.o.columns - 10 then
-    vim.cmd("wincmd =") -- already maximised — restore equal splits
+  -- Save the exact layout on maximise and restore it on toggle. `wincmd =`
+  -- can't be used to revert because it honours `winfixheight`/`winfixwidth`,
+  -- which preview windows (e.g. dadbod query results) set by default — so an
+  -- equalise would leave the results window stuck at full size. winrestcmd()'s
+  -- explicit :resize commands override winfix and restore the prior sizes.
+  if vim.t.maximized_restore then
+    vim.cmd(vim.t.maximized_restore) -- restore prior window sizes
+    vim.t.maximized_restore = nil
   else
+    vim.t.maximized_restore = vim.fn.winrestcmd()
     vim.cmd("wincmd |") -- maximise width
     vim.cmd("wincmd _") -- maximise height
   end
 end, { desc = "Toggle Maximize Window" })
+
+-- Invalidate the saved maximise layout when the window set changes. Opening or
+-- closing a window while maximised makes the stored winrestcmd() stale (it
+-- references a different set of windows), so a later toggle would restore the
+-- wrong sizes. Dropping it means the next <leader>wm maximises afresh instead.
+vim.api.nvim_create_autocmd({ "WinNew", "WinClosed" }, {
+  desc = "Invalidate stale maximise-window layout",
+  group = vim.api.nvim_create_augroup("maximize-window-guard", { clear = true }),
+  callback = function()
+    vim.t.maximized_restore = nil
+  end,
+})
 
 -- -----------------------------------------------------------------------------
 -- Tabs
@@ -82,6 +99,27 @@ set("n", "<leader>bd", function()
 end, { desc = "Close Buffer" })
 
 set("n", "<leader>bb", "<cmd>b#<cr>", { desc = "Previous Buffer" })
+
+-- Close every other listed buffer, keeping only the one under the cursor.
+-- Skips modified buffers so unsaved work is never discarded.
+set("n", "<leader>bo", function()
+  local current = vim.api.nvim_get_current_buf()
+  local skipped = 0
+
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if buf ~= current and vim.fn.buflisted(buf) == 1 then
+      if vim.bo[buf].modified then
+        skipped = skipped + 1
+      else
+        pcall(vim.cmd, "bdelete " .. buf)
+      end
+    end
+  end
+
+  if skipped > 0 then
+    vim.notify(("Kept %d modified buffer(s)"):format(skipped), vim.log.levels.WARN)
+  end
+end, { desc = "Close Other Buffers" })
 
 -- -----------------------------------------------------------------------------
 -- Diagnostics

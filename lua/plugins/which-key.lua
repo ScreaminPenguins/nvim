@@ -6,6 +6,7 @@ require("which-key").setup({})
 require("which-key").add({
 	{ "<leader>b", group = "Buffers" },
 	{ "<leader>d", group = "Debug" },
+	{ "<leader>D", group = "Database" },
 	{ "<leader>h", group = "Harpoon" },
 	{ "<leader>s", group = "Search" },
 	{ "<leader>t", group = "Toggle" },

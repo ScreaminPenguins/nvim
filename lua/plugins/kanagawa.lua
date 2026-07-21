@@ -6,6 +6,12 @@
 require("kanagawa").setup({
   commentStyle = { italic = false },
   keywordStyle = { italic = false },
+  -- Make the divider line between window splits high-contrast and easy to see.
+  overrides = function(colors)
+    return {
+      WinSeparator = { fg = colors.palette.oniViolet, bold = true },
+    }
+  end,
 })
 
 vim.cmd("colorscheme kanagawa")
