@@ -193,6 +193,25 @@ set("n", "<leader>tt", terminal.toggle, { desc = "Toggle Terminal" })
 set("t", "<C-T>", terminal.close, { desc = "Close Terminal" })
 
 -- -----------------------------------------------------------------------------
+-- Quickfix (async :make, state and logic in custom/qf.lua)
+-- -----------------------------------------------------------------------------
+-- Nothing to bind for movement: ]q, [q, ]Q and [Q have been Neovim defaults
+-- since 0.11. q closes the list, mapped in after/ftplugin/qf.lua.
+local qf = require("custom.qf")
+
+set("n", "<leader>m", qf.make, { desc = "Make (async, into quickfix)" })
+set("n", "<leader>tq", qf.toggle, { desc = "Toggle: quickfix" })
+
+-- :Make [args] mirrors :make but does not block. Arguments land at $* in
+-- 'makeprg' where it has one, and are appended where it does not.
+vim.api.nvim_create_user_command("Make", function(opts)
+  qf.make(opts.args)
+end, {
+  nargs = "*",
+  desc = "Run 'makeprg' asynchronously into the quickfix list",
+})
+
+-- -----------------------------------------------------------------------------
 -- Git
 -- -----------------------------------------------------------------------------
 

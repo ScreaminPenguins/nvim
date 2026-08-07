@@ -6,3 +6,7 @@ debug
 foo.*
 *.log
 data
+
+# skill eval workspaces (generated)
+.claude/skill-evals/
+__pycache__/

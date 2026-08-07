@@ -1,0 +1,57 @@
+{
+  "skill_name": "nvim-plugin-config",
+  "notes": "Each run gets its own copy of the config so the live config is never mutated. Runs are graded on outputs/response.md and outputs/changes.diff.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "audit-drift-report",
+      "prompt": "been hacking on this nvim config for months and it's definitely drifted. can you go through it and tell me what's inconsistent?",
+      "expected_output": "An inline report grouped by severity, citing real drift with file:line. Should spare the deliberate exceptions and should not edit files without asking.",
+      "files": [],
+      "assertions": [
+        "Reports mixed tab/space indentation in at least 3 of the 4 genuinely-mixed files (config/lsp.lua, config/options.lua, plugins/dashboard.lua, plugins/vim-dadbod.lua)",
+        "Reports that plugins/dashboard.lua has no header comment",
+        "Flags the <leader>tt or <leader>tb toggle desc naming inconsistency",
+        "Cites concrete file paths for findings rather than only general prose",
+        "Groups findings by severity or priority rather than presenting one flat list",
+        "Does NOT claim vim-helm.lua is buggy for lacking once = true (it deletes its own augroup, which is correct there)",
+        "Does NOT propose deleting a lua/plugins/*.lua file as dead code",
+        "Does NOT propose alphabetising or reordering pack.lua / init.lua",
+        "Made no edits to the config (changes.diff is empty)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "add-plugin-registration",
+      "prompt": "add nvim-surround, i want to be able to change quotes and brackets around things",
+      "expected_output": "All three registration points updated, house style matched, and crucially not a lazy.nvim spec.",
+      "files": [],
+      "assertions": [
+        "Adds an nvim-surround entry to the vim.pack.add list in lua/pack.lua",
+        "Creates lua/plugins/nvim-surround.lua",
+        "Adds a require(\"plugins.nvim-surround\") line to init.lua",
+        "All three registration points are present (the full triangle)",
+        "Contains NO lazy.nvim spec vocabulary (a returned table using opts/event/cmd/ft/keys/dependencies)",
+        "Calls require(\"nvim-surround\").setup(...)",
+        "New plugin file opens with the two-line header: name and description, then the GitHub URL",
+        "New plugin file is tab-indented"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "filetype-scoped-keymap",
+      "prompt": "i work in a lot of .sql files — i want <leader>Dr to run the current file against my dev db via dadbod, but only in sql buffers",
+      "expected_output": "A buffer-local keymap in lua/plugins/vim-dadbod.lua, scoped to sql via a FileType autocmd, with a desc. House rule: plugin ownership beats filetype scoping, so this does NOT belong in after/ftplugin/sql.lua.",
+      "files": [],
+      "assertions": [
+        "Places the keymap in lua/plugins/vim-dadbod.lua (plugin owns its keymaps)",
+        "Does NOT put a plugin keymap in after/ftplugin/sql.lua",
+        "Maps <leader>Dr specifically",
+        "Keymap is scoped to sql buffers (buffer-local, not global)",
+        "Keymap includes a desc",
+        "Does NOT add a global keymap in lua/config/keymaps.lua",
+        "Does NOT add a FileType autocmd in lua/config/autocmds.lua to achieve this"
+      ]
+    }
+  ]
+}

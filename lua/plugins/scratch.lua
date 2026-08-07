@@ -2,8 +2,11 @@
 -- Implementation: lua/custom/scratch.lua
 -- Keymaps registered by setup():
 --   <leader>tn — toggle scratch buffer for current filetype
---   <leader>tl — list / open saved scratch buffers (fzf picker)
+--   <leader>tL — list / open saved scratch buffers (fzf picker)
 --   <leader>tx — delete scratch buffer(s) (fzf picker)
+--
+-- Note: list is on <leader>tL, not <leader>tl — config/keymaps.lua binds
+-- <leader>tl to scroll-lock and loads after this file, so it would win.
 --
 -- Scratch files are persisted to:
 --   vim.fn.stdpath("data") .. "/scratches/"
@@ -12,7 +15,7 @@ require("custom.scratch").setup({
 	use_fzf = true,
 	keys = {
 		toggle = "<leader>tn",
-		list   = "<leader>tl",
+		list   = "<leader>tL",
 		delete = "<leader>tx",
 	},
 })

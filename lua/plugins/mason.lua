@@ -12,6 +12,7 @@ local ensure_installed = {
   "helm-ls",               -- Helm
   "intelephense",          -- PHP
   "jdtls",                 -- Java
+  "json-lsp",              -- JSON (lspconfig server name: jsonls)
   "lua-language-server",    -- Lua
   "yaml-language-server",   -- YAML
 

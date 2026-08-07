@@ -53,6 +53,16 @@ vim.opt.foldlevel     = 99
 vim.opt.foldlevelstart = 99
 
 
+-- Grep (ripgrep)
+-- :grep fills the quickfix list, which the fzf-lua pickers do not. That is the
+-- point: once matches are in quickfix, :cdo runs an edit over every one of them
+-- (`:cdo s/old/new/g | update`), so a rename is scoped to exactly the lines
+-- that matched. A picker finds one result; quickfix operates on all of them.
+-- The default grepformat has no %c, so the column from --vimgrep needs adding.
+vim.opt.grepprg = "rg --vimgrep --smart-case"
+vim.opt.grepformat = "%f:%l:%c:%m"
+
+
 -- Diagnostics
 vim.diagnostic.config({
   virtual_text = {
