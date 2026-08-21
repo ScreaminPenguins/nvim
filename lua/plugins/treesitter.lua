@@ -18,6 +18,7 @@ require("nvim-treesitter").install({
 	"python",
 	"query",
 	"sql",
+	"toml",
 	"vim",
 	"vimdoc",
 	"yaml",

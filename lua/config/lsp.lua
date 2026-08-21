@@ -61,6 +61,7 @@ vim.lsp.enable({
   "jsonls",       -- JSON
   "lua_ls",       -- Lua
   "ruff",         -- Python linter/formatter
+  "taplo",        -- TOML
   "ty",           -- Python type checker
   "yamlls",       -- YAML
 })

@@ -130,13 +130,38 @@ function M.make(args)
 	end)
 end
 
+-- Copy the LSP's diagnostics into the quickfix list. This is deliberately
+-- narrower than M.make: vim.diagnostic only knows about loaded buffers, so it
+-- reports what the running servers have already told us rather than a fresh
+-- project-wide run. Returns false when there is nothing to show.
+local function fill_from_diagnostics()
+	vim.diagnostic.setqflist({ open = false, title = "diagnostics" })
+
+	if vim.tbl_isempty(vim.fn.getqflist()) then
+		vim.notify("No diagnostics")
+		return false
+	end
+
+	return true
+end
+
 function M.toggle()
 	local win = qf_win()
 	if win then
 		vim.api.nvim_win_close(win, false)
-	else
-		vim.cmd.copen()
+		return
 	end
+
+	-- An empty list is the normal resting state, not an unusual one: nothing
+	-- populates quickfix until :Make or :grep runs, and a clean :Make clears it
+	-- again. Opening it then shows a blank window with no hint as to why, so fall
+	-- back to the diagnostics the servers are already reporting. A list that has
+	-- contents is left alone — that is :Make or :grep output being re-opened.
+	if vim.tbl_isempty(vim.fn.getqflist()) and not fill_from_diagnostics() then
+		return
+	end
+
+	vim.cmd.copen()
 end
 
 return M
