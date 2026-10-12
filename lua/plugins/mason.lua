@@ -15,6 +15,7 @@ local ensure_installed = {
   "json-lsp",              -- JSON (lspconfig server name: jsonls)
   "lua-language-server",    -- Lua
   "taplo",                 -- TOML
+  "vtsls",                 -- JavaScript
   "yaml-language-server",   -- YAML
 
   -- Linters / formatters

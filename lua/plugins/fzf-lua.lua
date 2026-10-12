@@ -29,6 +29,13 @@ require("fzf-lua").setup({
 			symbol_style = 1,
 		},
 	},
+	-- Route `vim.ui.select` through fzf-lua. Neovim's builtin implementation
+	-- uses `inputlist()`, which noice's `long_message_to_split` preset sends to a
+	-- bottom split for any list over 20 lines. Splits always render below
+	-- floating windows, so a picker opened from a float — Mason's language
+	-- filter (<C-f>), 237 entries — was drawn underneath it and invisible.
+	-- fzf-lua uses a float at zindex 50, above Mason's 45.
+	ui_select = true,
 })
 
 local fzf = require("fzf-lua")
