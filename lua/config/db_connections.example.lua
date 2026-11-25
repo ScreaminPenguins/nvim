@@ -73,7 +73,10 @@
 --             there is no dataset)
 --   sqlite / duckdb: path
 --   anything else: url = "scheme://user@host/db"  (password spliced after user)
--- `defaults[type]` fields are merged into every entry of that type.
+-- `defaults[type]` fields are merged into every entry of that type; an
+-- entry's own value wins. Any field works, e.g.
+--   defaults = { postgres = { port = 5432, secret = true, databases = "*" } }
+-- and one entry opts out with `secret = false` / `databases = false`.
 --
 -- Groups (optional, any type):
 --   group = "datahub"                  one group

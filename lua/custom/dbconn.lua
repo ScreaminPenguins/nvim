@@ -322,7 +322,7 @@ local function finalize()
 	end
 	for _, item in ipairs(items) do
 		local names = item.databases
-		if names == nil then
+		if names == nil or names == false then -- false: opt out of a defaults[type] value
 			add(item)
 		else
 			if names == "*" then
