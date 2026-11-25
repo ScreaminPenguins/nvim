@@ -35,7 +35,7 @@ require("fzf-lua").setup({
 	-- floating windows, so a picker opened from a float — Mason's language
 	-- filter (<C-f>), 237 entries — was drawn underneath it and invisible.
 	-- fzf-lua uses a float at zindex 50, above Mason's 45.
-	ui_select = true,
+	ui_select = {},
 })
 
 local fzf = require("fzf-lua")

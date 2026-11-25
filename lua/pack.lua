@@ -66,7 +66,7 @@ vim.pack.add({
 	--        blink.cmp.get_lsp_capabilities() which must be available.
 	-- ---------------------------------------------------------------------------
 	"https://github.com/rafamadriz/friendly-snippets", -- snippets source for blink
-	{ src = "https://github.com/saghen/blink.cmp", version = "v1" },
+	{ src = "https://github.com/saghen/blink.cmp", version = vim.version.range("1.*") },
 	"https://github.com/neovim/nvim-lspconfig",
 	"https://github.com/mason-org/mason.nvim",
 	"https://github.com/stevearc/conform.nvim",
