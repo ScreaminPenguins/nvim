@@ -182,6 +182,22 @@ local function main_win()
 	end
 end
 
+-- Query buffer filetype by connection kind, mirroring what DBUI picks for its
+-- own buffers (vim-dadbod-ui/autoload/db_ui/schemas.vim): MySQL syntax for
+-- mysql/mariadb, generic sql otherwise.
+local FILETYPES = {
+	mysql = "mysql",
+	mariadb = "mysql",
+	redis = "redis",
+	rediss = "redis",
+	oracle = "plsql",
+}
+
+local function query_filetype(entry)
+	local kind = entry.type or (entry.url and entry.url:match("^([%w+.-]+):"))
+	return FILETYPES[kind] or "sql"
+end
+
 local function open_query(entry, split)
 	M.open()
 	dbconn.apply()
@@ -202,9 +218,11 @@ local function open_query(entry, split)
 	vim.bo[buf].swapfile = false
 	vim.api.nvim_buf_set_name(buf, string.format("db://%s/%d", entry.alias, query_count[entry.alias]))
 	vim.api.nvim_win_set_buf(0, buf)
-	vim.bo[buf].filetype = entry.type == "redis" and "redis" or "sql"
+	-- b:db before filetype: the FileType event starts LSP, and lsp/bqls.lua
+	-- reads b:db to skip non-BigQuery connections.
 	vim.b[buf].db = dbconn.url(entry)
 	vim.b[buf].db_alias = entry.alias
+	vim.bo[buf].filetype = query_filetype(entry)
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "-- " .. entry.alias, "" })
 	vim.api.nvim_win_set_cursor(0, { 2, 0 })
 end
