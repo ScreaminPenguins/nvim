@@ -34,10 +34,13 @@ local SCHEMES = {
 	duckdb = "duckdb",
 }
 
-local entries = {} -- list of normalised connection entries, in file order
+local items = {} -- parsed file entries, in file order (`databases` not yet expanded)
+local entries = {} -- final connection entries, in file order
 local by_alias = {} -- alias -> entry
 local secrets = {} -- keychain account -> password (session cache)
+local discovered = {} -- `databases = "*"` alias -> list of db names, or false (session cache)
 local loaded = false
+local finalized = false
 local applied = false
 
 -- RFC 3986 percent-encoding for userinfo components.
@@ -106,10 +109,12 @@ function M.build_url(entry, password)
 	return scheme .. "://" .. userinfo .. host .. db .. query_string(entry.params)
 end
 
---- (Re)read the connections file. Returns the entry list.
+--- (Re)read the connections file. `databases` entries are expanded later, on
+--- first use of M.entries()/M.get() (see finalize below).
 function M.load()
-	entries, by_alias = {}, {}
-	loaded = true
+	items, entries, by_alias = {}, {}, {}
+	loaded, finalized = true, false
+	local seen = {}
 	if vim.fn.filereadable(CONFIG_PATH) == 0 then
 		vim.notify(
 			"dbconn: no connections file at " .. CONFIG_PATH .. " (copy db_connections.example.lua)",
@@ -126,15 +131,14 @@ function M.load()
 	for i, raw in ipairs(spec.connections or {}) do
 		if type(raw.alias) ~= "string" or raw.alias == "" then
 			vim.notify("dbconn: connection #" .. i .. " has no alias, skipped", vim.log.levels.WARN)
-		elseif by_alias[raw.alias] then
+		elseif seen[raw.alias] then
 			vim.notify("dbconn: duplicate alias '" .. raw.alias .. "', skipped", vim.log.levels.WARN)
 		else
-			local entry = vim.tbl_extend("keep", raw, defaults[raw.type] or {})
-			table.insert(entries, entry)
-			by_alias[entry.alias] = entry
+			seen[raw.alias] = true
+			table.insert(items, vim.tbl_extend("keep", raw, defaults[raw.type] or {}))
 		end
 	end
-	return entries
+	return items
 end
 
 --- Fetch missing secrets for `list` from the Keychain, in parallel.
@@ -168,6 +172,123 @@ local function fetch_secrets(list)
 	end
 end
 
+-- -----------------------------------------------------------------------------
+-- Several databases per server: `databases = { "a", "b" }` or `databases = "*"`
+-- -----------------------------------------------------------------------------
+-- One file entry becomes one connection per database, aliased
+-- "<alias> / <database>", all sharing the entry's Keychain secret (account =
+-- the entry's alias, or its `secret` string). "*" asks the server (postgres
+-- only) for every database the user may connect to; that runs once per
+-- session, when connections are first needed (opening the DB tab), with
+-- `database` (default "postgres") as the database to connect to for the
+-- lookup. If the lookup fails, `database` alone is used as the fallback.
+
+local DISCOVER_SQL = "SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate"
+	.. " AND has_database_privilege(datname, 'CONNECT') ORDER BY 1"
+local DISCOVER_TIMEOUT_MS = 10000
+
+--- Run the "*" lookups for `templates` in parallel, caching names per alias.
+local function discover(templates)
+	local todo = {}
+	for _, t in ipairs(templates) do
+		if discovered[t.alias] == nil then
+			if t.type == "postgres" or t.type == "postgresql" then
+				table.insert(todo, t)
+			else
+				discovered[t.alias] = false
+				vim.notify(
+					"dbconn: " .. t.alias .. ': databases = "*" needs type postgres; list them instead',
+					vim.log.levels.WARN
+				)
+			end
+		end
+	end
+	if #todo == 0 then
+		return
+	end
+	fetch_secrets(todo)
+	local jobs = {}
+	for _, t in ipairs(todo) do
+		local acct = secret_account(t)
+		local url = M.build_url(
+			vim.tbl_extend("force", t, { database = t.database or "postgres" }),
+			acct and secrets[acct] or nil
+		)
+		-- dadbod's own psql argv (-w: never prompt), so auth matches queries.
+		local cmd = vim.fn["db#adapter#postgresql#interactive"](url, { "-X", "-q", "-A", "-t", "-c", DISCOVER_SQL })
+		jobs[t.alias] = vim.system(cmd, { text = true })
+	end
+	for alias, job in pairs(jobs) do
+		local res = job:wait(DISCOVER_TIMEOUT_MS)
+		local names = {}
+		for line in (res.stdout or ""):gmatch("[^\n]+") do
+			table.insert(names, vim.trim(line))
+		end
+		if res.code == 0 and #names > 0 then
+			discovered[alias] = names
+		else
+			discovered[alias] = false
+			local why = res.code == 0 and "no databases returned" or vim.trim((res.stderr or ""):match("[^\n]*") or "")
+			vim.notify(
+				"dbconn: " .. alias .. ": database discovery failed (" .. (why ~= "" and why or "timed out") .. ")",
+				vim.log.levels.WARN
+			)
+		end
+	end
+end
+
+local function expand(item, names)
+	local acct = secret_account(item)
+	local out = {}
+	for _, db in ipairs(names) do
+		local e = vim.deepcopy(item)
+		e.databases = nil
+		e.database = db
+		e.alias = item.alias .. " / " .. db
+		e.secret = acct -- every expansion shares the file entry's credential
+		e.parent = item.alias
+		table.insert(out, e)
+	end
+	return out
+end
+
+--- Build `entries` from `items`, expanding `databases`. Idempotent per load.
+local function finalize()
+	if finalized then
+		return
+	end
+	finalized = true
+	discover(vim.tbl_filter(function(i)
+		return i.databases == "*"
+	end, items))
+	entries, by_alias = {}, {}
+	local function add(e)
+		if by_alias[e.alias] then
+			vim.notify("dbconn: duplicate alias '" .. e.alias .. "', skipped", vim.log.levels.WARN)
+		else
+			table.insert(entries, e)
+			by_alias[e.alias] = e
+		end
+	end
+	for _, item in ipairs(items) do
+		local names = item.databases
+		if names == nil then
+			add(item)
+		else
+			if names == "*" then
+				names = discovered[item.alias] or (item.database and { item.database } or {})
+			end
+			if type(names) ~= "table" then
+				vim.notify("dbconn: " .. item.alias .. ': databases must be a list or "*"', vim.log.levels.WARN)
+			else
+				for _, e in ipairs(expand(item, names)) do
+					add(e)
+				end
+			end
+		end
+	end
+end
+
 --- Resolved URL for one entry. Fetches its secret on demand, so a connection
 --- outside the active group still works from the picker.
 function M.url(entry)
@@ -183,7 +304,7 @@ end
 -- Groups
 -- -----------------------------------------------------------------------------
 -- `group = "datahub"` (or a list, `group = { "datahub", "prod" }`) on an entry.
--- With an active group, the DBUI drawer and <leader>Dq picker show only that
+-- With an active group, the DBUI drawer and <leader>Dn picker show only that
 -- group's connections; nil shows everything. Ungrouped entries appear only
 -- under "all".
 
@@ -291,30 +412,46 @@ function M.entries()
 	if not loaded then
 		M.load()
 	end
+	finalize()
 	return entries
 end
 
 function M.get(alias)
+	return M.entries() and by_alias[alias]
+end
+
+-- File aliases (= Keychain accounts) plus expanded ones already known. Never
+-- triggers discovery, so <Tab> stays instant.
+local function complete_alias(lead)
 	if not loaded then
 		M.load()
 	end
-	return by_alias[alias]
-end
-
-local function complete_alias(lead)
-	return vim.tbl_filter(
-		function(a)
-			return vim.startswith(a, lead)
-		end,
-		vim.tbl_map(function(e)
-			return e.alias
-		end, M.entries())
-	)
+	local seen, out = {}, {}
+	for _, list in ipairs({ items, finalized and entries or {} }) do
+		for _, e in ipairs(list) do
+			if not seen[e.alias] and vim.startswith(e.alias, lead) then
+				seen[e.alias] = true
+				table.insert(out, e.alias)
+			end
+		end
+	end
+	return out
 end
 
 --- Store a password in the Keychain for an alias (or shared secret account).
 function M.set_secret(alias)
-	local entry = M.get(alias)
+	-- File entries first: M.get() could trigger "*" discovery, which would run
+	-- (and fail) before this secret exists.
+	if not loaded then
+		M.load()
+	end
+	local entry
+	for _, item in ipairs(items) do
+		if item.alias == alias then
+			entry = item
+		end
+	end
+	entry = entry or (finalized and by_alias[alias])
 	local acct = entry and secret_account(entry) or alias
 	local pw = vim.fn.inputsecret("Password for " .. acct .. ": ")
 	if pw == "" then
@@ -360,6 +497,7 @@ function M.reload()
 			secrets[acct] = nil
 		end
 	end
+	discovered = {} -- re-ask servers, picks up new databases
 	refresh_drawer()
 	vim.notify("dbconn: loaded " .. #entries .. " connections (" .. #vim.g.dbs .. " shown)")
 end

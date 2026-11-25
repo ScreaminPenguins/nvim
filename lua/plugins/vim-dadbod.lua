@@ -41,7 +41,7 @@ vim.g.db_ui_save_location = vim.fn.stdpath("data") .. "/db_ui"
 vim.g.db_ui_execute_on_save = 0
 
 set("n", "<leader>Du", dbtab.toggle, { desc = "Database: toggle DB tab / drawer" })
-set("n", "<leader>Dq", dbtab.new_query, { desc = "Database: new query (pick alias)" })
+set("n", "<leader>Dn", dbtab.new_query, { desc = "Database: new query (pick alias)" })
 set("n", "<leader>Dv", function()
 	dbtab.new_query({ split = true })
 end, { desc = "Database: new query in vsplit" })

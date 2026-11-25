@@ -247,7 +247,7 @@ function M.run_keys(visual)
 		return visual and ":DB<cr>" or "<cmd>%DB<cr>"
 	end
 	vim.schedule(function()
-		vim.notify("No database connection for this buffer (open one with <leader>Dq)", vim.log.levels.WARN)
+		vim.notify("No database connection for this buffer (open one with <leader>Dn)", vim.log.levels.WARN)
 	end)
 	return visual and "<Esc>" or ""
 end

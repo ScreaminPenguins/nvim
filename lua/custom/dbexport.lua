@@ -4,7 +4,7 @@
 -- :DBExport [file] — re-run the current query buffer (or a line range /
 -- visual selection) against its connection (b:db) in the client's CSV mode,
 -- and write the result to a file. Works in DBUI drawer buffers and
--- <leader>Dq buffers alike.
+-- <leader>Dn buffers alike.
 --
 -- Dadbod's own adapters build the base command, so connection handling
 -- (host, user, Keychain password in the URL, bq project/params) is identical
@@ -195,7 +195,7 @@ function M.export(opts)
 	opts = opts or {}
 	local db = vim.b.db
 	if type(db) ~= "string" or db == "" then
-		vim.notify("dbexport: no connection for this buffer (open one with <leader>Dq)", vim.log.levels.WARN)
+		vim.notify("dbexport: no connection for this buffer (open one with <leader>Dn)", vim.log.levels.WARN)
 		return
 	end
 	local url = vim.fn["db#resolve"](db)

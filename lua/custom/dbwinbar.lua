@@ -9,7 +9,7 @@
 --   PROD  DataHub: Prod · mysql · datahub, prod          (whole bar red)
 --   ↳ results · DataHub: Dev
 --
--- Covers <leader>Dq buffers (b:db_alias) and DBUI drawer buffers
+-- Covers <leader>Dn buffers (b:db_alias) and DBUI drawer buffers
 -- (b:dbui_db_key_name = "<name>_<source>"); type/groups come from the
 -- connections file via custom.dbconn.
 --

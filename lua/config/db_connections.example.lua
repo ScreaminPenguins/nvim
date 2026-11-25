@@ -5,7 +5,7 @@
 --   cp lua/config/db_connections.example.lua lua/config/db_connections.lua
 --
 -- Each connection is shown by its `alias` in the DBUI drawer and the
--- <leader>Dq picker. NEVER put passwords in this file.
+-- <leader>Dn picker. NEVER put passwords in this file.
 --
 -- After editing: :DBReload (<leader>DR).
 --
@@ -77,10 +77,23 @@
 --   group = "datahub"                  one group
 --   group = { "datahub", "prod" }      several; the entry appears in each
 --   <leader>Dg or :DBGroup <name> shows only that group in the DBUI drawer and
---   the <leader>Dq picker; `:DBGroup` with no argument (or "(all)") shows
+--   the <leader>Dn picker; `:DBGroup` with no argument (or "(all)") shows
 --   everything. Ungrouped entries only appear under "all". Only the shown
 --   group's Keychain secrets are fetched when the drawer is built.
 --   e.g. { alias = "DataHub: Dev", group = { "datahub", "dev" }, type = "mysql", ... }
+--
+-- Several databases on one server (optional, any type):
+--   databases = { "orders", "reports" }  one connection per database, aliased
+--                                        "<alias> / orders", "<alias> / reports"
+--   databases = "*"                      postgres only: ask the server for every
+--                                        database the user may connect to
+--   Every expansion shares the entry's Keychain secret (account = the alias,
+--   or the `secret = "..."` string), so store the password once under the
+--   plain alias. With "*", `database` is the one connected to for the lookup
+--   (default "postgres") and the fallback if the lookup fails. The lookup runs
+--   once per session when the DB tab first opens; :DBReload re-runs it.
+--   e.g. { alias = "Officelink: Dev", type = "postgres", host = "...", user = "app",
+--          database = "officelink", databases = "*", secret = true }
 -- =============================================================================
 
 -- One line per connection reads best at ~100 entries; keep stylua off it.
