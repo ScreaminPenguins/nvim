@@ -68,7 +68,9 @@
 -- Fields by type:
 --   postgres / mysql / mariadb / sqlserver / clickhouse / redis / rediss:
 --       host, port, user, database, params = { key = value } (become ?k=v)
---   bigquery: project, dataset (optional), params (become bq flags)
+--   bigquery: project, dataset (optional), params (become bq flags),
+--             region (optional, default "us": where :DBIntrospect looks when
+--             there is no dataset)
 --   sqlite / duckdb: path
 --   anything else: url = "scheme://user@host/db"  (password spliced after user)
 -- `defaults[type]` fields are merged into every entry of that type.
@@ -94,11 +96,29 @@
 --   once per session when the DB tab first opens; :DBReload re-runs it.
 --   e.g. { alias = "Officelink: Dev", type = "postgres", host = "...", user = "app",
 --          database = "officelink", databases = "*", secret = true }
+--
+-- Excluding databases and schemas (optional):
+--   exclude = { databases = {...}, schemas = {...} }   top level: every connection
+--   exclude_databases = { "rdsadmin", "*_test" }        per entry (or in defaults[type])
+--   exclude_schemas   = { "audit", "tmp_*" }
+--   Patterns are globs (* and ?), matched against the whole name,
+--   case-insensitive. Lists add up: file level + defaults[type] + the entry.
+--   - exclude_databases drops those databases from a `databases` expansion
+--     (most useful with "*"). For MySQL, where a schema is a database, it
+--     also keeps them out of the :DBIntrospect cache.
+--   - exclude_schemas keeps those schemas (BigQuery: datasets) out of the
+--     :DBIntrospect cache and <leader>Ds search, and hides them in the
+--     drawer. DBUI only supports one global hide list, so in the drawer a
+--     schema excluded on one connection is hidden by that name on every
+--     connection shown.
+--   :DBReload after editing; :DBIntrospect again to rebuild a cache.
 -- =============================================================================
 
 -- One line per connection reads best at ~100 entries; keep stylua off it.
 -- stylua: ignore
 return {
+	-- exclude = { databases = { "rdsadmin" }, schemas = { "pg_temp*", "pg_toast*" } },
+
 	defaults = {
 		postgres = { port = 5432, params = { sslmode = "require" } },
 		mysql = { port = 3306 },

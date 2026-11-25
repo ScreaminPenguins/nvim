@@ -39,6 +39,7 @@ local entries = {} -- final connection entries, in file order
 local by_alias = {} -- alias -> entry
 local secrets = {} -- keychain account -> password (session cache)
 local discovered = {} -- `databases = "*"` alias -> list of db names, or false (session cache)
+local exclude = { databases = {}, schemas = {} } -- file-level `exclude = { ... }`
 local loaded = false
 local finalized = false
 local applied = false
@@ -113,6 +114,7 @@ end
 --- first use of M.entries()/M.get() (see finalize below).
 function M.load()
 	items, entries, by_alias = {}, {}, {}
+	exclude = { databases = {}, schemas = {} }
 	loaded, finalized = true, false
 	local seen = {}
 	if vim.fn.filereadable(CONFIG_PATH) == 0 then
@@ -128,6 +130,9 @@ function M.load()
 		return entries
 	end
 	local defaults = spec.defaults or {}
+	for _, kind in ipairs({ "databases", "schemas" }) do
+		exclude[kind] = vim.deepcopy((spec.exclude or {})[kind] or {})
+	end
 	for i, raw in ipairs(spec.connections or {}) do
 		if type(raw.alias) ~= "string" or raw.alias == "" then
 			vim.notify("dbconn: connection #" .. i .. " has no alias, skipped", vim.log.levels.WARN)
@@ -135,7 +140,15 @@ function M.load()
 			vim.notify("dbconn: duplicate alias '" .. raw.alias .. "', skipped", vim.log.levels.WARN)
 		else
 			seen[raw.alias] = true
-			table.insert(items, vim.tbl_extend("keep", raw, defaults[raw.type] or {}))
+			local d = defaults[raw.type] or {}
+			local item = vim.tbl_extend("keep", raw, d)
+			-- Exclusion lists add up (defaults[type] + entry) rather than replace.
+			for _, key in ipairs({ "exclude_databases", "exclude_schemas" }) do
+				if d[key] and raw[key] then
+					item[key] = vim.list_extend(vim.deepcopy(d[key]), raw[key])
+				end
+			end
+			table.insert(items, item)
 		end
 	end
 	return items
@@ -237,10 +250,46 @@ local function discover(templates)
 	end
 end
 
+-- -----------------------------------------------------------------------------
+-- Exclusions: `exclude = { databases = {...}, schemas = {...} }` at file level
+-- (every connection), `exclude_databases` / `exclude_schemas` per entry or in
+-- defaults[type]. Patterns are globs (`*`, `?`), whole-name, case-insensitive.
+-- -----------------------------------------------------------------------------
+
+local function glob_to_pattern(glob)
+	local p = glob:lower():gsub("[%^%$%(%)%%%.%[%]%+%-]", "%%%0"):gsub("%*", ".*"):gsub("%?", ".")
+	return "^" .. p .. "$"
+end
+
+--- Exclusion globs that apply to `entry` (may be nil: file-level only).
+--- kind = "databases" | "schemas".
+function M.exclusions(entry, kind)
+	local list = vim.deepcopy(exclude[kind] or {})
+	local own = entry and entry["exclude_" .. kind]
+	if type(own) == "string" then
+		own = { own }
+	end
+	return vim.list_extend(list, own or {})
+end
+
+--- Is `name` excluded for `entry`? kind = "databases" | "schemas".
+function M.excluded(entry, kind, name)
+	local lname = tostring(name):lower()
+	for _, glob in ipairs(M.exclusions(entry, kind)) do
+		if lname:match(glob_to_pattern(glob)) then
+			return true
+		end
+	end
+	return false
+end
+
 local function expand(item, names)
 	local acct = secret_account(item)
 	local out = {}
 	for _, db in ipairs(names) do
+		if M.excluded(item, "databases", db) then
+			goto continue
+		end
 		local e = vim.deepcopy(item)
 		e.databases = nil
 		e.database = db
@@ -248,6 +297,7 @@ local function expand(item, names)
 		e.secret = acct -- every expansion shares the file entry's credential
 		e.parent = item.alias
 		table.insert(out, e)
+		::continue::
 	end
 	return out
 end
@@ -385,6 +435,24 @@ function M.active_group()
 	return active_group
 end
 
+--- g:db_ui_hide_schemas for the drawer. DBUI only has a global list (matched
+--- by name in every connection), so this is the union of the file-level
+--- schema exclusions and those of every entry shown.
+function M.drawer_hidden_schemas(list)
+	local seen, out = {}, {}
+	local globs = M.exclusions(nil, "schemas")
+	for _, e in ipairs(list) do
+		vim.list_extend(globs, e.exclude_schemas and M.exclusions(e, "schemas") or {})
+	end
+	for _, glob in ipairs(globs) do
+		if not seen[glob:lower()] then
+			seen[glob:lower()] = true
+			table.insert(out, "\\c" .. vim.fn.glob2regpat(glob))
+		end
+	end
+	return out
+end
+
 --- Populate vim.g.dbs for DBUI. Idempotent unless `force`.
 function M.apply(force)
 	if applied and not force then
@@ -405,6 +473,7 @@ function M.apply(force)
 		end
 	end
 	vim.g.dbs = dbs
+	vim.g.db_ui_hide_schemas = M.drawer_hidden_schemas(visible)
 	applied = true
 end
 
@@ -437,6 +506,7 @@ local function complete_alias(lead)
 	end
 	return out
 end
+M.complete_alias = complete_alias
 
 --- Store a password in the Keychain for an alias (or shared secret account).
 function M.set_secret(alias)

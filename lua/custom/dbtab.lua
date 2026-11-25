@@ -207,7 +207,9 @@ local function query_filetype(entry)
 	return FILETYPES[kind] or "sql"
 end
 
-local function open_query(entry, split)
+--- Open a new query buffer on `entry` in the DB tab. `body` (list of lines)
+--- goes under the "-- <alias>" header line; the cursor lands after it.
+function M.open_query(entry, split, body)
 	M.open()
 	dbconn.apply()
 	local win = main_win()
@@ -232,8 +234,9 @@ local function open_query(entry, split)
 	vim.b[buf].db = dbconn.url(entry)
 	vim.b[buf].db_alias = entry.alias
 	vim.bo[buf].filetype = query_filetype(entry)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "-- " .. entry.alias, "" })
-	vim.api.nvim_win_set_cursor(0, { 2, 0 })
+	local lines = vim.list_extend({ "-- " .. entry.alias }, body or { "" })
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+	vim.api.nvim_win_set_cursor(0, { #lines, 0 })
 end
 
 --- Keys for <leader>DS: DBUI's executor in drawer-opened buffers (it handles
@@ -281,7 +284,7 @@ function M.new_query(opts)
 		format_item = format_entry,
 	}, function(choice)
 		if choice then
-			open_query(choice, opts.split)
+			M.open_query(choice, opts.split)
 		end
 	end)
 end
