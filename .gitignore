@@ -10,3 +10,6 @@ data
 # skill eval workspaces (generated)
 .claude/skill-evals/
 __pycache__/
+
+# dadbod connection details (secrets are in Keychain; see db_connections.example.lua)
+lua/config/db_connections.lua

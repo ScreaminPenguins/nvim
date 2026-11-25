@@ -1,0 +1,114 @@
+-- =============================================================================
+-- config/db_connections.example.lua
+-- =============================================================================
+-- Template for lua/config/db_connections.lua (gitignored). Copy it:
+--   cp lua/config/db_connections.example.lua lua/config/db_connections.lua
+--
+-- Each connection is shown by its `alias` in the DBUI drawer and the
+-- <leader>Dq picker. NEVER put passwords in this file.
+--
+-- After editing: :DBReload (<leader>DR).
+--
+-- -----------------------------------------------------------------------------
+-- Credentials: macOS Keychain
+-- -----------------------------------------------------------------------------
+-- `secret = true`         password is the Keychain item with
+--                           service = "nvim-dadbod", account = <alias>
+-- `secret = "<account>"`  use that account's password instead (one login
+--                           shared by several connections, e.g. secret = "pg-dev"
+--                           on every dev postgres). The account name doesn't
+--                           have to be an alias.
+-- (no `secret`)           no password (bigquery/gcloud, local sqlite, trust auth)
+--
+-- Only the password goes in the Keychain. The username stays in `user` below.
+-- Redis with no ACL user: leave `user` unset; the secret is the AUTH password.
+--
+-- Add or update: option A, the shell (recommended)
+--   security add-generic-password -U -s nvim-dadbod -a <alias> -l "nvim-dadbod: <alias>" -w
+--     -s  service, always exactly "nvim-dadbod"
+--     -a  account: the alias (or the shared account name from `secret = "..."`)
+--     -l  label shown in Keychain Access (optional, makes items easy to find)
+--     -U  update in place if the item already exists
+--     -w  LAST, with no value: security prompts for the password, so it never
+--         lands in shell history or `ps`. Don't write `-w hunter2`.
+--   Items created this way are readable by /usr/bin/security (what nvim
+--   calls) without an "allow access" prompt.
+--
+-- Add or update: option B, from Neovim
+--   :DBSecretSet <alias>    (<leader>Dk; <Tab> completes aliases)
+--   Prompts with a hidden input. Caveat: it passes the password to `security`
+--   as an argument, so it's visible to `ps` for a split second. Option A
+--   avoids that.
+--
+-- Add or update: option C, the Keychain Access app
+--   File > New Password Item:
+--     Keychain Item Name = nvim-dadbod     (this becomes the service)
+--     Account Name       = <alias>
+--     Password           = <password>
+--   The first time nvim reads it, macOS asks whether `security` may access it.
+--   Choose "Always Allow", or the prompt comes back on every new session.
+--
+-- Check / remove (in the shell):
+--   security find-generic-password -s nvim-dadbod -a <alias>      metadata only
+--   security find-generic-password -s nvim-dadbod -a <alias> -w   prints password
+--   security delete-generic-password -s nvim-dadbod -a <alias>
+--   In Keychain Access, search "nvim-dadbod" to see every item.
+--
+-- When it doesn't work:
+--   - Keychain is read once per nvim session, the first time the DB tab
+--     opens. After adding or changing a password, run :DBReload. Aliases with
+--     no secret are listed in one warning at that point.
+--   - The account must match the alias exactly (case-sensitive), or the
+--     `secret = "..."` string.
+--   - Items live in the login keychain. If it's locked (e.g. over SSH),
+--     run `security unlock-keychain` first.
+--   - Special characters in passwords are fine; they're percent-encoded into
+--     the connection URL automatically.
+--
+-- Fields by type:
+--   postgres / mysql / mariadb / sqlserver / clickhouse / redis / rediss:
+--       host, port, user, database, params = { key = value } (become ?k=v)
+--   bigquery: project, dataset (optional), params (become bq flags)
+--   sqlite / duckdb: path
+--   anything else: url = "scheme://user@host/db"  (password spliced after user)
+-- `defaults[type]` fields are merged into every entry of that type.
+--
+-- Groups (optional, any type):
+--   group = "datahub"                  one group
+--   group = { "datahub", "prod" }      several; the entry appears in each
+--   <leader>Dg or :DBGroup <name> shows only that group in the DBUI drawer and
+--   the <leader>Dq picker; `:DBGroup` with no argument (or "(all)") shows
+--   everything. Ungrouped entries only appear under "all". Only the shown
+--   group's Keychain secrets are fetched when the drawer is built.
+--   e.g. { alias = "DataHub: Dev", group = { "datahub", "dev" }, type = "mysql", ... }
+-- =============================================================================
+
+-- One line per connection reads best at ~100 entries; keep stylua off it.
+-- stylua: ignore
+return {
+	defaults = {
+		postgres = { port = 5432, params = { sslmode = "require" } },
+		mysql = { port = 3306 },
+		redis = { port = 6379 },
+	},
+
+	connections = {
+		-- Postgres
+		-- { alias = "orders-dev", type = "postgres", host = "orders-dev.db.internal", user = "app", database = "orders", secret = true },
+		-- { alias = "orders-prod", type = "postgres", host = "orders-prod.db.internal", user = "readonly", database = "orders", secret = true },
+		--
+		-- -- MySQL
+		-- { alias = "legacy-crm", type = "mysql", host = "crm.db.internal", user = "report", database = "crm", secret = true },
+		--
+		-- -- Redis (database = numeric db index)
+		-- { alias = "cache-dev", type = "redis", host = "redis-dev.internal", database = 0, secret = true },
+		--
+		-- -- BigQuery (auth via gcloud — no secret)
+		-- { alias = "bq-dev", type = "bigquery", project = "dev-enterprise-wareh-6c24fdfb" },
+		-- { alias = "bq-prod", type = "bigquery", project = "prod-enterprise-ware-c8219262" },
+		-- { alias = "bq-sandbox", type = "bigquery", project = "sandbox-thunderdome" },
+
+		-- Raw URL escape hatch
+		-- { alias = "mssql-ops", url = "sqlserver://sa@ops.db.internal:1433/ops", secret = true },
+	},
+}
