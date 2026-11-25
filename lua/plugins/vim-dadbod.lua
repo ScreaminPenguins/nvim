@@ -51,6 +51,9 @@ set("x", "<leader>DS", function()
 end, { expr = true, remap = true, desc = "Database: run selection" })
 -- CSV export re-runs the query in the client's CSV mode (lua/custom/dbexport.lua).
 require("custom.dbexport")
+-- Per-window winbar naming each query/results pane's connection; production
+-- connections get a red bar (lua/custom/dbwinbar.lua).
+require("custom.dbwinbar")
 set("n", "<leader>De", "<cmd>DBExport<cr>", { desc = "Database: export buffer as CSV" })
 set("x", "<leader>De", ":DBExport<cr>", { desc = "Database: export selection as CSV" })
 set("n", "<leader>DR", "<cmd>DBReload<cr>", { desc = "Database: reload connections" })

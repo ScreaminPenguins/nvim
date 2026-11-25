@@ -68,6 +68,15 @@ local function is_result_win(win)
 	return false
 end
 
+--- The query buffer whose results are shown in `win`, if any (for winbars).
+function M.result_source(win)
+	for buf, w in pairs(results) do
+		if w == win and vim.api.nvim_buf_is_valid(buf) then
+			return buf
+		end
+	end
+end
+
 local function live_result_wins()
 	local wins = {}
 	for buf, win in pairs(results) do
