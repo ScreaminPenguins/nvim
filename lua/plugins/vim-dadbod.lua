@@ -25,8 +25,8 @@
 --
 -- Schema search (DataGrip-style): <leader>Di / :DBIntrospect [alias] caches a
 -- connection's columns on disk; <leader>Ds / :DBColumns fuzzy-searches every
--- cached column across connections; `I` on a table in the drawer pops up its
--- columns and types.
+-- cached column across connections, <leader>DT / :DBTables every schema.table;
+-- `I` on a table in the drawer pops up its columns and types.
 --
 -- BigQuery uses the `bq` CLI; auth is gcloud's, not dadbod's — run
 -- `gcloud auth application-default login` if queries fail with an auth error.
@@ -80,6 +80,7 @@ set("n", "<leader>Dj", dbtab.pick_reveal, { desc = "Database: jump to connection
 require("custom.dbmeta")
 set("n", "<leader>Di", "<cmd>DBIntrospect<cr>", { desc = "Database: introspect connection (cache columns)" })
 set("n", "<leader>Ds", "<cmd>DBColumns<cr>", { desc = "Database: search cached columns" })
+set("n", "<leader>DT", "<cmd>DBTables<cr>", { desc = "Database: search cached schemas/tables" })
 set("n", "<leader>Df", "<cmd>DBUIFindBuffer<cr>", { desc = "Database: find buffer" })
 set("n", "<leader>Da", "<cmd>DBUIAddConnection<cr>", { desc = "Database: add connection" })
 set("n", "<leader>Dr", "<cmd>DBUIRenameBuffer<cr>", { desc = "Database: rename buffer" })

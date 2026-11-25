@@ -15,7 +15,9 @@
 --                           alias/table/type too
 --       <CR>    new query buffer: SELECT * FROM <table> LIMIT 100
 --       ctrl-y  yank the qualified table name
---       ctrl-r  reveal the connection in the DBUI drawer
+--       ctrl-r  open the DBUI drawer expanded down to that table
+--   :DBTables [query]       same, one row per schema.table (<leader>DT);
+--                           matches connection + schema.table, same keys
 --       preview lists the table's columns and when the cache was taken
 --   I (in the DBUI drawer)  centred float with the columns/types of the table
 --                           under the cursor: from the cache, else one live
@@ -415,7 +417,7 @@ function M.command(name)
 end
 
 -- -----------------------------------------------------------------------------
--- :DBColumns picker
+-- :DBColumns / :DBTables pickers
 -- -----------------------------------------------------------------------------
 
 local function quote_ident(kind, name)
@@ -435,9 +437,10 @@ local function qualified_table(entry, kind, schema, tbl)
 	return quote_ident(kind, schema) .. "." .. quote_ident(kind, tbl)
 end
 
--- Picker line: four visible fields, then hidden fields used by the preview
--- and the actions:
---   alias \t schema.table \t column \t type \t path \t schema \t table
+-- Picker lines: visible fields first, then three hidden fields used by the
+-- preview and the actions, always last so both pickers share them:
+--   columns: alias \t schema.table \t column \t type   \t path \t schema \t table
+--   tables:  alias \t schema.table \t N cols           \t path \t schema \t table
 -- Visible fields are space-padded into columns (the padding is trimmed on read).
 local MAX_PAD = 48
 
@@ -445,9 +448,27 @@ local function pad(s, width)
 	return s .. string.rep(" ", math.max(0, width - vim.fn.strdisplaywidth(s)))
 end
 
-local function load_lines()
-	local rows, files = {}, cached_files()
-	local w = { 0, 0, 0 }
+-- Pad the first `n` fields of every row and join into tab-separated lines.
+local function to_lines(rows, n)
+	local w = {}
+	for i = 1, n do
+		w[i] = 0
+		for _, row in ipairs(rows) do
+			w[i] = math.min(MAX_PAD, math.max(w[i], vim.fn.strdisplaywidth(row[i])))
+		end
+	end
+	local lines = {}
+	for _, row in ipairs(rows) do
+		for i = 1, n do
+			row[i] = pad(row[i], w[i])
+		end
+		table.insert(lines, table.concat(row, "\t"))
+	end
+	return lines
+end
+
+--- Every cached column: cb(header, schema, table, column, type) per row.
+local function each_cached(files, cb)
 	for _, h in ipairs(files) do
 		local first = true
 		for line in io.lines(h.path) do
@@ -456,36 +477,49 @@ local function load_lines()
 			else
 				local s, t, c, ty = unpack(vim.split(line, "\t", { plain = true }))
 				if c then
-					local row = { h.alias, s .. "." .. t, c, ty or "", h.path, s, t }
-					for i = 1, 3 do
-						w[i] = math.min(MAX_PAD, math.max(w[i], vim.fn.strdisplaywidth(row[i])))
-					end
-					table.insert(rows, row)
+					cb(h, s, t, c, ty or "")
 				end
 			end
 		end
 	end
-	local lines = {}
-	for _, row in ipairs(rows) do
-		for i = 1, 3 do
-			row[i] = pad(row[i], w[i])
+end
+
+local function column_lines(files)
+	local rows = {}
+	each_cached(files, function(h, s, t, c, ty)
+		table.insert(rows, { h.alias, s .. "." .. t, c, ty, h.path, s, t })
+	end)
+	return to_lines(rows, 3)
+end
+
+local function table_lines(files)
+	local rows, index = {}, {}
+	each_cached(files, function(h, s, t)
+		local key = h.path .. "\0" .. s .. "\0" .. t
+		if not index[key] then
+			index[key] = { h.alias, s .. "." .. t, 0, h.path, s, t }
+			table.insert(rows, index[key])
 		end
-		table.insert(lines, table.concat(row, "\t"))
+		index[key][3] = index[key][3] + 1
+	end)
+	for _, row in ipairs(rows) do
+		row[3] = row[3] .. (row[3] == 1 and " col" or " cols")
 	end
-	return lines, files
+	return to_lines(rows, 2)
 end
 
 local function parse_line(line)
 	local f = vim.split(line, "\t", { plain = true })
-	return { alias = vim.trim(f[1]), path = f[5], schema = f[6], table = f[7] }
+	local n = #f
+	return { alias = vim.trim(f[1]), path = f[n - 2], schema = f[n - 1], table = f[n] }
 end
 
 -- Shell preview: the selected table's columns, read back from its cache file.
-local PREVIEW = [[S={6} T={7} awk -F'\t' '
+local PREVIEW = [[S={-2} T={-1} awk -F'\t' '
 NR == 1 { cmd = "date -r " $5 " \"+%Y-%m-%d %H:%M\""; cmd | getline when; close(cmd)
           print $3 "  ·  " ENVIRON["S"] "." ENVIRON["T"]; print "cached " when; print ""; next }
 $1 == ENVIRON["S"] && $2 == ENVIRON["T"] { printf "%-36s %-28s %s\n", $3, $4, ($5 == "NO" ? "not null" : "") }
-' {5}]]
+' {-3}]]
 
 local function selected_target(selected)
 	local sel = selected and selected[1]
@@ -499,24 +533,124 @@ local function selected_target(selected)
 	return item, entry, kind
 end
 
---- Fuzzy-search every cached column. `query` pre-fills the prompt.
-function M.columns(query)
-	local lines, files = load_lines()
-	if #lines == 0 then
-		vim.notify("dbmeta: nothing cached yet — run :DBIntrospect on a connection first", vim.log.levels.WARN)
+local function gone(item)
+	vim.notify("dbmeta: '" .. item.alias .. "' is no longer in the connections file", vim.log.levels.WARN)
+end
+
+--- DBUI drawer items (plain data, one per drawer line).
+local function drawer_items()
+	local ok, items = pcall(vim.fn.eval, "db_ui#drawer#get().content")
+	return ok and type(items) == "table" and items or {}
+end
+
+--- Open the drawer on `entry`, expand down to schema/table, cursor on it.
+function M.reveal_table(entry, schema, tbl)
+	require("custom.dbtab").reveal(entry) -- connection row, expanded, cursor on it
+	if vim.bo.filetype ~= "dbui" then
 		return
 	end
+	local current = drawer_items()[vim.fn.line(".")]
+	local key = current and current.dbui_db_key_name
+	if not key or key == "" then
+		return
+	end
+	local function find(path)
+		for i, item in ipairs(drawer_items()) do
+			if item.dbui_db_key_name == key and item.type == path then
+				return i, item
+			end
+		end
+	end
+	local function open(path)
+		local lnum, item = find(path)
+		if not lnum then
+			return false
+		end
+		vim.api.nvim_win_set_cursor(0, { lnum, 0 })
+		if item.expanded == 0 or item.expanded == false then
+			vim.cmd([[execute "normal \<Plug>(DBUI_SelectLine)"]])
+		end
+		return true
+	end
+	local target
+	if find("schemas") then
+		target = open("schemas")
+			and open("schemas->items->" .. schema)
+			and find("schemas->items->" .. schema .. "->tables->items->" .. tbl)
+	else
+		target = open("tables") and find("tables->items->" .. tbl)
+	end
+	if not target then
+		vim.notify(
+			"dbmeta: " .. schema .. "." .. tbl .. " not in the drawer (excluded schema, or press R to refresh it)",
+			vim.log.levels.WARN
+		)
+		return
+	end
+	vim.api.nvim_win_set_cursor(0, { target, 0 })
+	vim.cmd("normal! zz")
+end
+
+-- Shared by both pickers.
+local actions = {
+	["default"] = function(selected)
+		local item, entry, kind = selected_target(selected)
+		if not item then
+			return
+		elseif not entry then
+			return gone(item)
+		end
+		local tbl = qualified_table(entry, kind, item.schema, item.table)
+		require("custom.dbtab").open_query(entry, false, { "SELECT *", "FROM " .. tbl, "LIMIT 100;" })
+	end,
+	["ctrl-y"] = function(selected)
+		local item, entry, kind = selected_target(selected)
+		if item then
+			local tbl = qualified_table(entry, kind, item.schema, item.table)
+			vim.fn.setreg('"', tbl)
+			vim.fn.setreg("+", tbl)
+			vim.notify("dbmeta: yanked " .. tbl)
+		end
+	end,
+	["ctrl-r"] = function(selected)
+		local item, entry = selected_target(selected)
+		if entry then
+			M.reveal_table(entry, item.schema, item.table)
+		elseif item then
+			gone(item)
+		end
+	end,
+}
+
+local function cache_header(files, what)
 	local oldest = math.huge
 	for _, h in ipairs(files) do
 		oldest = math.min(oldest, h.fetched or 0)
 	end
-	local header = string.format(
-		"%d connections cached, oldest %s ago · matching column names (ctrl-t: all fields)"
-			.. " · <CR> select · ctrl-y yank table · ctrl-r reveal",
+	return string.format(
+		"%d connections cached, oldest %s ago · %s · <CR> select · ctrl-y yank table · ctrl-r show in drawer",
 		#files,
-		age(oldest)
+		age(oldest),
+		what
 	)
-	require("fzf-lua").fzf_exec(lines, {
+end
+
+local function cached_or_warn()
+	local files = cached_files()
+	if #files == 0 then
+		vim.notify("dbmeta: nothing cached yet — run :DBIntrospect on a connection first", vim.log.levels.WARN)
+		return nil
+	end
+	return files
+end
+
+--- Fuzzy-search every cached column. `query` pre-fills the prompt.
+function M.columns(query)
+	local files = cached_or_warn()
+	if not files then
+		return
+	end
+	require("fzf-lua").fzf_exec(column_lines(files), {
 		prompt = "Columns> ",
 		query = query,
 		preview = PREVIEW,
@@ -527,45 +661,31 @@ function M.columns(query)
 			-- Match column names only; ctrl-t flips to alias/table/type as well.
 			["--nth"] = "3",
 			["--tabstop"] = "2",
-			["--header"] = header,
+			["--header"] = cache_header(files, "matching column names (ctrl-t: all fields)"),
 		},
-		actions = {
-			["default"] = function(selected)
-				local item, entry, kind = selected_target(selected)
-				if not item then
-					return
-				end
-				if not entry then
-					vim.notify(
-						"dbmeta: '" .. item.alias .. "' is no longer in the connections file",
-						vim.log.levels.WARN
-					)
-					return
-				end
-				local tbl = qualified_table(entry, kind, item.schema, item.table)
-				require("custom.dbtab").open_query(entry, false, { "SELECT *", "FROM " .. tbl, "LIMIT 100;" })
-			end,
-			["ctrl-y"] = function(selected)
-				local item, entry, kind = selected_target(selected)
-				if item then
-					local tbl = qualified_table(entry, kind, item.schema, item.table)
-					vim.fn.setreg('"', tbl)
-					vim.fn.setreg("+", tbl)
-					vim.notify("dbmeta: yanked " .. tbl)
-				end
-			end,
-			["ctrl-r"] = function(selected)
-				local item, entry = selected_target(selected)
-				if entry then
-					require("custom.dbtab").reveal(entry)
-				elseif item then
-					vim.notify(
-						"dbmeta: '" .. item.alias .. "' is no longer in the connections file",
-						vim.log.levels.WARN
-					)
-				end
-			end,
+		actions = actions,
+	})
+end
+
+--- Fuzzy-search every cached schema.table (one row per table). Matches the
+--- connection alias and schema.table; `query` pre-fills the prompt.
+function M.tables(query)
+	local files = cached_or_warn()
+	if not files then
+		return
+	end
+	require("fzf-lua").fzf_exec(table_lines(files), {
+		prompt = "Tables> ",
+		query = query,
+		preview = PREVIEW,
+		fzf_opts = {
+			["--delimiter"] = "\t",
+			["--with-nth"] = "1..3",
+			["--nth"] = "1..2",
+			["--tabstop"] = "2",
+			["--header"] = cache_header(files, "matching connection + schema.table"),
 		},
+		actions = actions,
 	})
 end
 
@@ -764,5 +884,9 @@ end, {
 vim.api.nvim_create_user_command("DBColumns", function(opts)
 	M.columns(opts.args ~= "" and opts.args or nil)
 end, { nargs = "?", desc = "Search cached DB columns across connections" })
+
+vim.api.nvim_create_user_command("DBTables", function(opts)
+	M.tables(opts.args ~= "" and opts.args or nil)
+end, { nargs = "?", desc = "Search cached DB schemas/tables across connections" })
 
 return M
