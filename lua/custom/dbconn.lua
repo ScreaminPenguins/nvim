@@ -201,9 +201,50 @@ local function in_active_group(entry)
 	return active_group == nil or vim.tbl_contains(groups_of(entry), active_group)
 end
 
---- Entries visible under the active group, in file order.
+-- -----------------------------------------------------------------------------
+-- Text filter (:DBFilter / <leader>D/)
+-- -----------------------------------------------------------------------------
+-- Case-insensitive plain substring match against alias, type and groups.
+-- Combines with the active group (both must match).
+
+local active_filter = nil
+
+local function matches_filter(entry)
+	if not active_filter then
+		return true
+	end
+	local needle = active_filter:lower()
+	local hay = { entry.alias, entry.type or "" }
+	vim.list_extend(hay, groups_of(entry))
+	for _, s in ipairs(hay) do
+		if tostring(s):lower():find(needle, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+--- Entries visible under the active group and filter, in file order.
 function M.visible_entries()
-	return vim.tbl_filter(in_active_group, M.entries())
+	return vim.tbl_filter(function(e)
+		return in_active_group(e) and matches_filter(e)
+	end, M.entries())
+end
+
+function M.active_filter()
+	return active_filter
+end
+
+--- "group datahub, filter 'prod'" / "all" — for prompts and messages.
+function M.view_label()
+	local parts = {}
+	if active_group then
+		table.insert(parts, "group " .. active_group)
+	end
+	if active_filter then
+		table.insert(parts, "filter '" .. active_filter .. "'")
+	end
+	return #parts > 0 and table.concat(parts, ", ") or nil
 end
 
 --- Every group name used in the file, sorted.
@@ -334,7 +375,31 @@ function M.set_group(name)
 	end
 	active_group = name
 	refresh_drawer()
-	vim.notify("dbconn: group " .. (name or "(all)") .. ": " .. #vim.g.dbs .. " connections")
+	vim.notify("dbconn: " .. (M.view_label() or "all") .. ": " .. #vim.g.dbs .. " connections")
+end
+
+--- Show only connections whose alias/type/group contains `text`; nil/"" clears.
+function M.set_filter(text)
+	text = text and vim.trim(text) or ""
+	active_filter = text ~= "" and text or nil
+	refresh_drawer()
+	local level = #vim.g.dbs == 0 and vim.log.levels.WARN or vim.log.levels.INFO
+	vim.notify("dbconn: " .. (M.view_label() or "all") .. ": " .. #vim.g.dbs .. " connections", level)
+end
+
+--- Prompt for the filter text, pre-filled with the current one.
+function M.prompt_filter()
+	vim.ui.input({ prompt = "DB filter (empty clears): ", default = active_filter or "" }, function(text)
+		if text ~= nil then -- nil = cancelled
+			M.set_filter(text)
+		end
+	end)
+end
+
+--- Drop both the group and the filter (show every connection).
+function M.clear_view()
+	active_group, active_filter = nil, nil
+	refresh_drawer()
 end
 
 --- Pick a group with vim.ui.select (first item shows everything).
@@ -364,6 +429,10 @@ end, {
 	end,
 	desc = "Show one group of DB connections (no argument: all)",
 })
+
+vim.api.nvim_create_user_command("DBFilter", function(opts)
+	M.set_filter(opts.args)
+end, { nargs = "?", desc = "Show DB connections matching text (no argument: clear)" })
 
 vim.api.nvim_create_user_command("DBReload", function()
 	M.reload()

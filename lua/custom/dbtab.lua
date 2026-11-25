@@ -252,36 +252,109 @@ function M.run_keys(visual)
 	return visual and "<Esc>" or ""
 end
 
+local function format_entry(e)
+	local where = e.type == "bigquery" and (e.project .. (e.dataset and (":" .. e.dataset) or ""))
+		or e.url and "url"
+		or e.path
+		or ((e.host or "localhost") .. (e.database ~= nil and ("/" .. tostring(e.database)) or ""))
+	local groups = type(e.group) == "table" and table.concat(e.group, ",") or (e.group or "")
+	-- Group is part of the text, so fuzzy-typing a group name filters too.
+	return string.format("%-28s %-14s %-9s %s", e.alias, groups, e.type or "url", where)
+end
+
 --- Pick a connection by alias and open a new query buffer for it.
 --- opts.split = true opens it in a vertical split beside the current query.
 function M.new_query(opts)
 	opts = opts or {}
-	-- Respects the active group (<leader>Dg / :DBGroup), same as the drawer.
+	-- Respects the active group/filter (<leader>Dg, <leader>D/), same as the drawer.
 	local entries = dbconn.visible_entries()
-	local group = dbconn.active_group()
+	local view = dbconn.view_label()
 	if vim.tbl_isempty(entries) then
 		vim.notify(
-			"dbtab: no connections"
-				.. (group and (" in group '" .. group .. "'") or "")
-				.. " (see lua/config/db_connections.lua)",
+			"dbtab: no connections" .. (view and (" in " .. view) or "") .. " (see lua/config/db_connections.lua)",
 			vim.log.levels.WARN
 		)
 		return
 	end
 	vim.ui.select(entries, {
-		prompt = "Query connection" .. (group and (" [" .. group .. "]") or "") .. ":",
-		format_item = function(e)
-			local where = e.type == "bigquery" and (e.project .. (e.dataset and (":" .. e.dataset) or ""))
-				or e.url and "url"
-				or e.path
-				or ((e.host or "localhost") .. (e.database ~= nil and ("/" .. tostring(e.database)) or ""))
-			local groups = type(e.group) == "table" and table.concat(e.group, ",") or (e.group or "")
-			-- Group is part of the text, so fuzzy-typing a group name filters too.
-			return string.format("%-28s %-14s %-9s %s", e.alias, groups, e.type or "url", where)
-		end,
+		prompt = "Query connection" .. (view and (" [" .. view .. "]") or "") .. ":",
+		format_item = format_entry,
 	}, function(choice)
 		if choice then
 			open_query(choice, opts.split)
+		end
+	end)
+end
+
+local function drawer_win()
+	for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == "dbui" then
+			return w
+		end
+	end
+end
+
+-- Line number of `alias`'s top-level connection row in the drawer buffer, and
+-- whether it is expanded. Rows are "<toggle icon> <name>[ <status icon>]
+-- [ (<scheme> - <source>)]" (vim-dadbod-ui drawer.vim add_db), unindented.
+local function connection_line(buf, alias)
+	local icons = vim.g.db_ui_icons
+	local prefixes = { [icons.collapsed.db .. " "] = false, [icons.expanded.db .. " "] = true }
+	for lnum, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+		for prefix, expanded in pairs(prefixes) do
+			if vim.startswith(line, prefix) and vim.startswith(line:sub(#prefix + 1), alias) then
+				local rest = line:sub(#prefix + #alias + 1)
+				for _, status in ipairs({ icons.connection_ok, icons.connection_error }) do
+					if vim.startswith(rest, " " .. status) then
+						rest = rest:sub(#status + 2)
+					end
+				end
+				if rest == "" or rest:match("^ %(.* %- .*%)$") then
+					return lnum, expanded
+				end
+			end
+		end
+	end
+end
+
+--- Open the drawer on `entry`'s connection, expanded, cursor on it. Clears the
+--- group/filter first if they hide it.
+function M.reveal(entry)
+	M.open()
+	if not vim.tbl_contains(dbconn.visible_entries(), entry) then
+		dbconn.clear_view()
+		vim.notify("dbtab: cleared group/filter to show " .. entry.alias)
+	end
+	vim.cmd("DBUI") -- opens the drawer, or focuses it if already open
+	local win = drawer_win()
+	if not win then
+		return
+	end
+	local lnum, expanded = connection_line(vim.api.nvim_win_get_buf(win), entry.alias)
+	if not lnum then
+		vim.notify("dbtab: " .. entry.alias .. " not found in the drawer", vim.log.levels.WARN)
+		return
+	end
+	vim.api.nvim_set_current_win(win)
+	vim.api.nvim_win_set_cursor(win, { lnum, 0 })
+	if not expanded then
+		-- DBUI's own toggle: expands, connects and loads saved queries/tables.
+		vim.cmd([[execute "normal \<Plug>(DBUI_SelectLine)"]])
+		vim.api.nvim_win_set_cursor(win, { lnum, 0 })
+	end
+	vim.cmd("normal! zt")
+end
+
+--- Fuzzy-pick any connection (ignores the group/filter) and reveal it in the drawer.
+function M.pick_reveal()
+	local entries = dbconn.entries()
+	if vim.tbl_isempty(entries) then
+		vim.notify("dbtab: no connections (see lua/config/db_connections.lua)", vim.log.levels.WARN)
+		return
+	end
+	vim.ui.select(entries, { prompt = "Jump to connection:", format_item = format_entry }, function(choice)
+		if choice then
+			M.reveal(choice)
 		end
 	end)
 end

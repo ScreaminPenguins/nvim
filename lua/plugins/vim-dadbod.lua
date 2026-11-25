@@ -19,6 +19,10 @@
 -- run side by side give two result panes side by side. Implementation:
 -- lua/custom/dbtab.lua.
 --
+-- Finding connections: <leader>Dg filters the drawer/picker to one group,
+-- <leader>D/ (:DBFilter) by text in alias/type/group; <leader>Dj fuzzy-picks
+-- any connection and opens the drawer expanded on it.
+--
 -- BigQuery uses the `bq` CLI; auth is gcloud's, not dadbod's — run
 -- `gcloud auth application-default login` if queries fail with an auth error.
 
@@ -60,6 +64,11 @@ set("n", "<leader>DR", "<cmd>DBReload<cr>", { desc = "Database: reload connectio
 set("n", "<leader>Dg", function()
 	require("custom.dbconn").pick_group()
 end, { desc = "Database: filter by group" })
+-- Text filter over alias/type/group (:DBFilter); combines with the group.
+set("n", "<leader>D/", function()
+	require("custom.dbconn").prompt_filter()
+end, { desc = "Database: filter connections by text" })
+set("n", "<leader>Dj", dbtab.pick_reveal, { desc = "Database: jump to connection in drawer" })
 set("n", "<leader>Df", "<cmd>DBUIFindBuffer<cr>", { desc = "Database: find buffer" })
 set("n", "<leader>Da", "<cmd>DBUIAddConnection<cr>", { desc = "Database: add connection" })
 set("n", "<leader>Dr", "<cmd>DBUIRenameBuffer<cr>", { desc = "Database: rename buffer" })
