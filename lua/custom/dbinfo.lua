@@ -7,6 +7,9 @@
 --   :DBInfo [alias]   <leader>Dm, or `I` on a connection row in the drawer
 --   <leader>DI        the current query buffer's (or results pane's) connection
 --   :DBOpen [alias]   <leader>Do — pick one of the entry's links, open it
+--   :DBRefreshMetadata [--dry-run|--project P|--all-projects]
+--                     re-derive cloudsql + team from gcloud
+--                     (scripts/refresh-db-metadata.py), then :DBReload
 --   No alias: the current query buffer's connection, else the drawer's
 --   connection under the cursor, else a picker.
 --
@@ -345,6 +348,37 @@ end
 function M.open(name)
 	with_entry(name, "Open links for:", M.open_link)
 end
+
+--- :DBRefreshMetadata [args] — run scripts/refresh-db-metadata.py (cloudsql
+--- and team from gcloud) in the background; reload connections if it wrote.
+function M.refresh_metadata(args)
+	local script = vim.fn.stdpath("config") .. "/scripts/refresh-db-metadata.py"
+	local cmd = { "python3", script }
+	vim.list_extend(cmd, args or {})
+	vim.notify("dbinfo: refreshing connection metadata from gcloud…")
+	vim.system(cmd, { text = true }, function(res)
+		vim.schedule(function()
+			local out = vim.trim((res.stdout or "") .. "\n" .. (res.stderr or ""))
+			if res.code ~= 0 then
+				return vim.notify("dbinfo: metadata refresh failed\n" .. out, vim.log.levels.ERROR)
+			end
+			vim.notify("dbinfo: " .. out)
+			if out:find("\nupdated ") or out:find("^updated ") then
+				dbconn.reload()
+			end
+		end)
+	end)
+end
+
+vim.api.nvim_create_user_command("DBRefreshMetadata", function(opts)
+	M.refresh_metadata(opts.fargs)
+end, {
+	nargs = "*",
+	complete = function()
+		return { "--dry-run", "--all-projects", "--project" }
+	end,
+	desc = "Refresh cloudsql/team in the connections file from gcloud (scripts/refresh-db-metadata.py)",
+})
 
 vim.api.nvim_create_user_command("DBInfo", function(opts)
 	M.info(opts.args)

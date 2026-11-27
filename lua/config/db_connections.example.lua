@@ -129,6 +129,10 @@
 --              no `env`, a whole word "prod"/"production" in the alias or a
 --              group decides ("DataHub: Prod" yes, "product-db" no). Set
 --              env = "dev" to stop a name like "Product: Dev" being guessed.
+--   cloudsql and team can be filled in / kept current automatically:
+--   scripts/refresh-db-metadata.py (or :DBRefreshMetadata) matches each
+--   host's IP to a Cloud SQL instance (gcloud) and sets team from its helm
+--   `app-owner` label. --dry-run shows what it would change.
 --   All of these can go in defaults[type] too, and expanded `databases`
 --   connections inherit them from their server entry.
 --   e.g. { alias = "Orders: Prod", type = "postgres", host = "10.1.2.3", user = "app",
