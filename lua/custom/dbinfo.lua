@@ -108,7 +108,9 @@ local function rows(entry)
 		add("Database", entry.database)
 		add("User", entry.user)
 	end
-	if entry.parent then
+	if entry.pending then
+		add("Databases", 'all ("*"), not listed yet: :DBDiscover or pick its group')
+	elseif entry.parent then
 		add("Server entry", entry.parent)
 	end
 	local acct = entry.secret == true and entry.alias or (type(entry.secret) == "string" and entry.secret) or nil

@@ -301,13 +301,18 @@ end
 
 --- Connections named by `name`: that alias, or every database of a parent.
 local function resolve(name)
-	local entry = dbconn.get(name)
-	if entry then
-		return { entry }
-	end
-	return vim.tbl_filter(function(e)
+	-- A `databases = "*"` server alias: make sure its databases are listed
+	-- first (the lookup normally only runs for the active group/filter).
+	dbconn.ensure_discovered(name)
+	-- A server alias means all its databases (dbconn.get would give just one).
+	local children = vim.tbl_filter(function(e)
 		return e.parent == name
 	end, dbconn.entries())
+	if #children > 0 then
+		return children
+	end
+	local entry = dbconn.get(name)
+	return entry and { entry } or {}
 end
 
 --- Introspect `list` in the background (MAX_JOBS at a time), then report once.
@@ -388,15 +393,13 @@ function M.command(name)
 	if current then
 		return M.introspect({ current })
 	end
-	-- Pick one: every connection, plus "<parent> (all N databases)" rows.
+	-- Pick one: every connection, plus "<parent> (all databases)" rows; a
+	-- parent is resolved (and, for "*", looked up) only once it is picked.
 	local choices, parents = {}, {}
 	for _, e in ipairs(dbconn.entries()) do
 		if e.parent and not parents[e.parent] then
-			parents[e.parent] = resolve(e.parent)
-			table.insert(
-				choices,
-				{ label = e.parent .. "  (all " .. #parents[e.parent] .. " databases)", list = parents[e.parent] }
-			)
+			parents[e.parent] = true
+			table.insert(choices, { label = e.parent .. "  (all databases)", parent = e.parent })
 		end
 		table.insert(choices, { label = e.alias, list = { e } })
 	end
@@ -411,7 +414,7 @@ function M.command(name)
 		end,
 	}, function(choice)
 		if choice then
-			M.introspect(choice.list)
+			M.introspect(choice.list or resolve(choice.parent))
 		end
 	end)
 end

@@ -204,10 +204,16 @@ end
 -- One file entry becomes one connection per database, aliased
 -- "<alias> / <database>", all sharing the entry's Keychain secret (account =
 -- the entry's alias, or its `secret` string). "*" asks the server (postgres
--- only) for every database the user may connect to; that runs once per
--- session, when connections are first needed (opening the DB tab), with
--- `database` (default "postgres") as the database to connect to for the
--- lookup. If the lookup fails, `database` alone is used as the fallback.
+-- only) for every database the user may connect to, connecting to `database`
+-- (default "postgres") for the lookup.
+--
+-- The lookup only runs for "*" entries in the active group/filter (or on
+-- demand: :DBDiscover, :DBIntrospect on the server alias), once per session
+-- per server; :DBReload forgets the results. Until then, and if it fails, the
+-- entry is one connection under its plain alias, on `database`; once looked
+-- up it becomes "<alias> / <db>" rows, and the plain alias still resolves
+-- (M.get) to the `database` row. With no group and no filter ("all"), no
+-- lookups run: ~100 servers are never asked at once.
 
 local DISCOVER_SQL = "SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate"
 	.. " AND has_database_privilege(datname, 'CONNECT') ORDER BY 1"
@@ -316,13 +322,15 @@ local function expand(item, names)
 end
 
 --- Build `entries` from `items`, expanding `databases`. Idempotent per load.
+local item_visible -- set below, with the group/filter state
+
 local function finalize()
 	if finalized then
 		return
 	end
 	finalized = true
 	discover(vim.tbl_filter(function(i)
-		return i.databases == "*"
+		return i.databases == "*" and item_visible(i)
 	end, items))
 	entries, by_alias = {}, {}
 	local function add(e)
@@ -338,17 +346,36 @@ local function finalize()
 		if names == nil or names == false then -- false: opt out of a defaults[type] value
 			add(item)
 		else
-			if names == "*" then
-				names = discovered[item.alias] or (item.database and { item.database } or {})
+			if names == "*" and not discovered[item.alias] then
+				-- Not looked up (or the lookup failed): one connection under the
+				-- plain alias, on `database`.
+				local e = expand(item, { item.database or "postgres" })[1] or vim.deepcopy(item)
+				e.alias, e.databases, e.pending = item.alias, nil, true
+				add(e)
+				goto next_item
+			elseif names == "*" then
+				names = discovered[item.alias]
 			end
 			if type(names) ~= "table" then
 				vim.notify("dbconn: " .. item.alias .. ': databases must be a list or "*"', vim.log.levels.WARN)
 			else
-				for _, e in ipairs(expand(item, names)) do
+				local expanded = expand(item, names)
+				for _, e in ipairs(expanded) do
 					add(e)
+				end
+				-- Keep the plain server alias resolvable (buffers/caches opened
+				-- before the lookup) without listing it: its `database` row.
+				if not by_alias[item.alias] then
+					for _, e in ipairs(expanded) do
+						if e.database == (item.database or "postgres") then
+							by_alias[item.alias] = e
+						end
+					end
+					by_alias[item.alias] = by_alias[item.alias] or expanded[1]
 				end
 			end
 		end
+		::next_item::
 	end
 end
 
@@ -410,6 +437,40 @@ local function matches_filter(entry)
 		end
 	end
 	return false
+end
+
+-- Should a "*" entry be looked up now? Only under an active group/filter.
+item_visible = function(item)
+	return (active_group ~= nil or active_filter ~= nil) and in_active_group(item) and matches_filter(item)
+end
+
+--- The file entry (before `databases` expansion) for `alias`, or nil.
+function M.item(alias)
+	if not loaded then
+		M.load()
+	end
+	for _, item in ipairs(items) do
+		if item.alias == alias then
+			return item
+		end
+	end
+end
+
+--- Run the "*" lookup for one server entry now (if not already done), so its
+--- databases are listed whatever the view. Returns true if it is a "*" entry.
+function M.ensure_discovered(alias, force)
+	local item = M.item(alias)
+	if not item or item.databases ~= "*" then
+		return false
+	end
+	if force then
+		discovered[alias] = nil
+	end
+	if discovered[alias] == nil then
+		discover({ item })
+		finalized = false
+	end
+	return true
 end
 
 --- Entries visible under the active group and filter, in file order.
@@ -480,6 +541,18 @@ function M.apply(force)
 	end
 	local visible = M.visible_entries()
 	fetch_secrets(visible) -- only what the drawer will show
+	-- DBUI lists connections in g:dbs order. vim.g.dbconn_drawer_sort:
+	-- "alias" = A→Z by alias (case-insensitive), anything else = file order.
+	if vim.g.dbconn_drawer_sort == "alias" then
+		visible = vim.list_slice(visible)
+		table.sort(visible, function(a, b)
+			local la, lb = a.alias:lower(), b.alias:lower()
+			if la ~= lb then
+				return la < lb
+			end
+			return a.alias < b.alias
+		end)
+	end
 	local dbs = {}
 	for _, entry in ipairs(visible) do
 		local ok, url = pcall(M.url, entry)
@@ -658,6 +731,68 @@ end, {
 vim.api.nvim_create_user_command("DBFilter", function(opts)
 	M.set_filter(opts.args)
 end, { nargs = "?", desc = "Show DB connections matching text (no argument: clear)" })
+
+--- `databases = "*"` server entries, in file order.
+local function star_items()
+	if not loaded then
+		M.load()
+	end
+	return vim.tbl_filter(function(i)
+		return i.databases == "*"
+	end, items)
+end
+
+--- :DBDiscover [alias] — (re-)list one "*" server's databases now. No
+--- argument: the current buffer's server, else pick one.
+function M.discover_command(alias)
+	local function run(name)
+		if not M.ensure_discovered(name, true) then
+			return vim.notify("dbconn: '" .. name .. '\' is not a databases = "*" entry', vim.log.levels.WARN)
+		end
+		refresh_drawer()
+		local n = discovered[name] and #discovered[name] or 0
+		vim.notify("dbconn: " .. name .. ": " .. n .. " database" .. (n == 1 and "" or "s"))
+	end
+	if alias and alias ~= "" then
+		return run(alias)
+	end
+	local current = vim.b.db_alias and M.get(vim.b.db_alias)
+	if current and current.parent then
+		return run(current.parent)
+	end
+	vim.ui.select(star_items(), {
+		prompt = "List databases of:",
+		format_item = function(i)
+			local d = discovered[i.alias]
+			return string.format(
+				"%-36s %s",
+				i.alias,
+				d and (#d .. " databases") or (d == false and "lookup failed" or "not looked up")
+			)
+		end,
+	}, function(choice)
+		if choice then
+			run(choice.alias)
+		end
+	end)
+end
+
+vim.api.nvim_create_user_command("DBDiscover", function(opts)
+	M.discover_command(opts.args)
+end, {
+	nargs = "?",
+	complete = function(lead)
+		return vim.tbl_map(
+			function(i)
+				return i.alias
+			end,
+			vim.tbl_filter(function(i)
+				return vim.startswith(i.alias, lead)
+			end, star_items())
+		)
+	end,
+	desc = "List a databases = \"*\" server's databases now (no argument: current buffer's)",
+})
 
 vim.api.nvim_create_user_command("DBReload", function()
 	M.reload()

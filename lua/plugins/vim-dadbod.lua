@@ -48,6 +48,9 @@ vim.g.db_ui_save_location = vim.fn.stdpath("data") .. "/db_ui"
 -- Don't auto-execute on save; run queries explicitly (<leader>S in a DBUI
 -- buffer, or <leader>DS in any query buffer).
 vim.g.db_ui_execute_on_save = 0
+-- Drawer order: A→Z by alias ("file" = connections-file order). Read by
+-- custom/dbconn.lua when it builds vim.g.dbs.
+vim.g.dbconn_drawer_sort = "alias"
 
 set("n", "<leader>Du", dbtab.toggle, { desc = "Database: toggle DB tab / drawer" })
 set("n", "<leader>Dn", dbtab.new_query, { desc = "Database: new query (pick alias)" })

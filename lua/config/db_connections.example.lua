@@ -100,8 +100,13 @@
 --   Every expansion shares the entry's Keychain secret (account = the alias,
 --   or the `secret = "..."` string), so store the password once under the
 --   plain alias. With "*", `database` is the one connected to for the lookup
---   (default "postgres") and the fallback if the lookup fails. The lookup runs
---   once per session when the DB tab first opens; :DBReload re-runs it.
+--   (default "postgres"); until the lookup has run the server is one
+--   connection under its plain alias, then "<alias> / <db>" rows.
+--   The lookup only runs for "*" entries in the active group or filter
+--   (<leader>Dg, <leader>D/), once per session per server; with neither set,
+--   none run, so a long list of servers is never queried at once. Run it on
+--   demand with :DBDiscover [alias] (also re-runs it), or :DBIntrospect on the
+--   server alias. :DBReload forgets all lookups.
 --   e.g. { alias = "Billing: Dev", type = "postgres", host = "...", user = "app",
 --          database = "billing", databases = "*", secret = true }
 --
