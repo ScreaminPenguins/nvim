@@ -9,8 +9,11 @@
 --   No alias: the current query buffer's connection, else the drawer's
 --   connection under the cursor, else a picker.
 --
--- In the pop-up: o opens the link on the cursor line (else picks one),
--- y yanks the value on the cursor line, q / <Esc> closes.
+-- The pop-up has a "connection" pane (type, host, database, user, secret,
+-- excludes, cache) above a "metadata" pane (team, groups, env, Cloud SQL,
+-- info, links, notes); it starts in metadata. o opens the link on the cursor
+-- line (else picks one), y yanks the value on the cursor line, <Tab> switches
+-- pane, q / <Esc> closes.
 --
 -- Metadata fields (all optional, any connection type; see the example file):
 --   team     = "data-platform"
@@ -80,21 +83,22 @@ local function list(v)
 	return type(v) == "table" and table.concat(v, ", ") or tostring(v)
 end
 
---- Label/value rows describing an entry (no secrets).
+--- Label/value rows describing an entry (no secrets), in two sections:
+--- connection (how to reach it) and metadata (who owns it, links, notes).
 local function rows(entry)
-	local r = {}
-	local function add(label, value)
-		if value ~= nil and value ~= "" then
-			table.insert(r, { label, tostring(value) })
+	local conn, meta = {}, {}
+	local function adder(list)
+		return function(label, value)
+			if value ~= nil and value ~= "" then
+				table.insert(list, { label, tostring(value) })
+			end
 		end
 	end
+	local add, addm = adder(conn), adder(meta)
+
+	-- Connection
 	local kind = entry.type or (entry.url and entry.url:match("^([%w+.-]+):")) or "?"
 	add("Type", kind)
-	if entry.team then
-		add("Team", entry.team)
-	end
-	add("Groups", list(entry.group))
-	add("Env", entry.env)
 	if entry.url then
 		add("URL", entry.url) -- as written in the file: the password is never in it
 	elseif kind == "bigquery" then
@@ -115,6 +119,21 @@ local function rows(entry)
 	end
 	local acct = entry.secret == true and entry.alias or (type(entry.secret) == "string" and entry.secret) or nil
 	add("Secret", acct and ('Keychain "nvim-dadbod" / "' .. acct .. '"'))
+	local excl_db = list(entry.exclude_databases)
+	local excl_schema = list(entry.exclude_schemas)
+	add("Excludes", excl_db and (pad("databases", 12) .. excl_db))
+	add(excl_db and "" or "Excludes", excl_schema and (pad("schemas", 12) .. excl_schema))
+	local ok, dbmeta = pcall(require, "custom.dbmeta")
+	local cache = ok and dbmeta.cache_status(entry.alias)
+	add(
+		"Cache",
+		cache and (cache.columns .. " columns, cached " .. cache.age .. " ago") or "not cached (:DBIntrospect)"
+	)
+
+	-- Metadata
+	addm("Team", entry.team)
+	addm("Groups", list(entry.group))
+	addm("Env", entry.env)
 	local sql = entry.cloudsql
 	if type(sql) == "table" then
 		local sub = {}
@@ -127,16 +146,16 @@ local function rows(entry)
 			table.insert(sub, { "connection", sql.project .. ":" .. sql.region .. ":" .. sql.instance })
 		end
 		for i, kv in ipairs(sub) do
-			add(i == 1 and "Cloud SQL" or "", pad(kv[1], 12) .. kv[2])
+			addm(i == 1 and "Cloud SQL" or "", pad(kv[1], 12) .. kv[2])
 		end
 	end
 	if type(entry.info) == "table" then
 		local keys = vim.tbl_keys(entry.info)
-		table.sort(keys, function(a, b)
-			return tostring(a) < tostring(b)
+		table.sort(keys, function(x, y)
+			return tostring(x) < tostring(y)
 		end)
 		for _, k in ipairs(keys) do
-			add(tostring(k), list(entry.info[k]))
+			addm(tostring(k), list(entry.info[k]))
 		end
 	end
 	local links, lw = M.links(entry), 0
@@ -144,24 +163,14 @@ local function rows(entry)
 		lw = math.max(lw, vim.fn.strdisplaywidth(link[1]))
 	end
 	for i, link in ipairs(links) do
-		add(i == 1 and "Links" or "", pad(link[1], lw + 2) .. link[2])
+		addm(i == 1 and "Links" or "", pad(link[1], lw + 2) .. link[2])
 	end
-	local excl_db = list(entry.exclude_databases)
-	local excl_schema = list(entry.exclude_schemas)
-	add("Excludes", excl_db and (pad("databases", 12) .. excl_db))
-	add(excl_db and "" or "Excludes", excl_schema and (pad("schemas", 12) .. excl_schema))
-	local ok, meta = pcall(require, "custom.dbmeta")
-	local cache = ok and meta.cache_status(entry.alias)
-	add(
-		"Cache",
-		cache and (cache.columns .. " columns, cached " .. cache.age .. " ago") or "not cached (:DBIntrospect)"
-	)
 	if entry.notes then
 		for i, line in ipairs(vim.split(tostring(entry.notes), "\n", { plain = true })) do
-			add(i == 1 and "Notes" or "", line)
+			addm(i == 1 and "Notes" or "", line)
 		end
 	end
-	return r
+	return conn, meta
 end
 
 local function open_url(url)
@@ -192,34 +201,48 @@ function M.open_link(entry)
 	end
 end
 
---- Info pop-up for an alias or entry.
+--- Info pop-up for an alias or entry: a "connection" pane above a
+--- "metadata" pane (custom.dbpopup stack; <Tab> switches between them).
 function M.show(target)
 	local entry = type(target) == "table" and target or dbconn.get(target)
 	if not entry then
 		vim.notify("dbinfo: '" .. tostring(target) .. "' is not in the connections file", vim.log.levels.WARN)
 		return
 	end
-	local r = rows(entry)
-	local highlights = {}
-	for i, row in ipairs(r) do
-		if row[1] ~= "" then
-			table.insert(highlights, { i - 1, "Title", 1, 1 + #row[1] })
+	local conn, meta = rows(entry)
+	if #meta == 0 then
+		meta = { { "", "no metadata (team, cloudsql, links, notes, info — see db_connections.example.lua)" } }
+	end
+	-- One label width across both panes so their values line up.
+	local lw = 0
+	for _, list in ipairs({ conn, meta }) do
+		for _, row in ipairs(list) do
+			lw = math.max(lw, vim.fn.strdisplaywidth(row[1]))
 		end
 	end
-	local popup = require("custom.dbpopup")
-	local lines = popup.columns(r, 2)
-	local values = vim.tbl_map(function(row)
-		return row[2]
-	end, r)
-	popup.open({
-		lines = lines,
-		title = entry.alias,
-		footer = "o open link · y yank value · q close",
-		highlights = highlights,
+	local function pane(list, title)
+		local lines, hl = {}, {}
+		for i, row in ipairs(list) do
+			table.insert(lines, " " .. pad(row[1], lw + 2) .. row[2] .. " ")
+			if row[1] ~= "" then
+				table.insert(hl, { i - 1, "Title", 1, 1 + #row[1] })
+			end
+		end
+		return { lines = lines, title = title, highlights = hl }
+	end
+	local sections = { conn, meta }
+	local function value(i, lnum)
+		local row = sections[i][lnum]
+		return row and row[2] or ""
+	end
+	require("custom.dbpopup").open_stack({
+		panes = { pane(conn, entry.alias .. " · connection"), pane(meta, "metadata") },
+		footer = "o open link · y yank value · <Tab> switch pane · q close",
+		focus = 2, -- links live in metadata
 		keys = {
 			o = {
-				function()
-					local url = values[vim.fn.line(".")]:match("https?://%S+")
+				function(i, lnum)
+					local url = value(i, lnum):match("https?://%S+")
 					if url then
 						open_url(url)
 					else
@@ -229,8 +252,8 @@ function M.show(target)
 				"Open link",
 			},
 			y = {
-				function()
-					local v = values[vim.fn.line(".")]
+				function(i, lnum)
+					local v = value(i, lnum)
 					-- Links rows are "name  url": yank just the url.
 					v = v:match("https?://%S+") or v
 					vim.fn.setreg('"', v)
