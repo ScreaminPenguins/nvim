@@ -5,6 +5,7 @@
 -- pop-up, plus opening an entry's web links.
 --
 --   :DBInfo [alias]   <leader>Dm, or `I` on a connection row in the drawer
+--   <leader>DI        the current query buffer's (or results pane's) connection
 --   :DBOpen [alias]   <leader>Do — pick one of the entry's links, open it
 --   No alias: the current query buffer's connection, else the drawer's
 --   connection under the cursor, else a picker.
@@ -266,10 +267,30 @@ function M.show(target)
 	})
 end
 
+--- The connection of a query buffer: <leader>Dn buffers carry b:db_alias,
+--- drawer-opened ones b:dbui_db_key_name (DBUI's "<name>_<source>" key).
+local function buffer_entry(buf)
+	local alias = vim.b[buf].db_alias
+	if alias then
+		return dbconn.get(alias)
+	end
+	local key = vim.b[buf].dbui_db_key_name
+	if type(key) == "string" and key ~= "" then
+		local ok, name =
+			pcall(vim.fn.eval, "get(get(db_ui#drawer#get().dbui.dbs, " .. vim.fn.string(key) .. ", {}), 'name', '')")
+		return ok and name ~= "" and dbconn.get(name) or nil
+	end
+end
+
 --- The connection meant by "no argument": current buffer, drawer row, or nil.
 local function current_entry()
-	if vim.b.db_alias then
-		return dbconn.get(vim.b.db_alias)
+	local from_buffer = buffer_entry(0)
+	if from_buffer then
+		return from_buffer
+	end
+	if vim.bo.filetype == "dbout" then -- a results pane: its query buffer
+		local src = require("custom.dbtab").result_source(vim.api.nvim_get_current_win())
+		return src and buffer_entry(src) or nil
 	end
 	if vim.bo.filetype == "dbui" then
 		local ok, alias = pcall(
@@ -304,6 +325,17 @@ local function with_entry(name, prompt, fn)
 			fn(choice)
 		end
 	end)
+end
+
+--- Info pop-up for the current query buffer's (or results pane's)
+--- connection only; no picker.
+function M.info_current()
+	local entry = current_entry()
+	if not entry then
+		vim.notify("dbinfo: this buffer has no connection (open a query with <leader>Dn)", vim.log.levels.WARN)
+		return
+	end
+	M.show(entry)
 end
 
 function M.info(name)
