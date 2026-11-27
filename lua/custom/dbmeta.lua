@@ -7,7 +7,7 @@
 --   :DBIntrospect [alias]   fetch (or refresh) the column catalog of one
 --                           connection. No argument: the current query
 --                           buffer's connection, else pick one. A `databases`
---                           parent alias ("Officelink: Dev") does each of its
+--                           parent alias ("Billing: Dev") does each of its
 --                           databases. Only ever runs when invoked: nothing is
 --                           introspected automatically.
 --   :DBColumns [query]      fzf over every cached column (<leader>Ds); matches
@@ -19,9 +19,9 @@
 --   :DBTables [query]       same, one row per schema.table (<leader>DT);
 --                           matches connection + schema.table, same keys
 --       preview lists the table's columns and when the cache was taken
---   I (in the DBUI drawer)  centred float with the columns/types of the table
---                           under the cursor: from the cache, else one live
---                           query. q / <Esc> closes it.
+--   I (in the DBUI drawer)  on a table: centred float with its columns/types,
+--                           from the cache, else one live query. On a
+--                           connection: its info (custom.dbinfo). q closes.
 --
 -- Cache: stdpath("cache")/dbmeta/<alias>.tsv, one row per column
 -- (schema, table, column, type, nullable), first line a header with the alias
@@ -747,90 +747,44 @@ local function cached_table(alias, schema, tbl)
 	return rows, h.fetched
 end
 
-local popup_win -- the open columns pop-up, if any
-
-local function close_popup()
-	if popup_win and vim.api.nvim_win_is_valid(popup_win) then
-		vim.api.nvim_win_close(popup_win, true)
-	end
-	popup_win = nil
-end
-
---- Centred, focused float: COLUMN / TYPE / NULL, one row per column, no wrap.
---- q or <Esc> (or leaving it) closes it.
+--- Centred pop-up: COLUMN / TYPE / NULL, one row per column (custom.dbpopup).
 local function show_columns(t, rows, source)
-	close_popup()
 	local cells = { { "COLUMN", "TYPE", "NULL" } }
 	for _, r in ipairs(rows) do
 		table.insert(cells, { r[3], r[4] or "", r[5] == "NO" and "not null" or "" })
 	end
-	local w = { 0, 0 }
-	for _, c in ipairs(cells) do
-		w[1] = math.max(w[1], vim.fn.strdisplaywidth(c[1]))
-		w[2] = math.max(w[2], vim.fn.strdisplaywidth(c[2]))
-	end
-	local lines = {}
-	for _, c in ipairs(cells) do
-		local line = " "
-			.. c[1]
-			.. string.rep(" ", w[1] - vim.fn.strdisplaywidth(c[1]) + 3)
-			.. c[2]
-			.. string.rep(" ", w[2] - vim.fn.strdisplaywidth(c[2]) + 3)
-			.. c[3]
-		table.insert(lines, (line:gsub("%s+$", "")) .. " ")
-	end
-
 	local name = (t.schema ~= "" and (t.schema .. ".") or "") .. t.table
-	local title = " " .. name .. " "
-	local footer = " " .. t.alias .. " · " .. #rows .. " columns · " .. source .. " "
-	local width = math.max(vim.fn.strdisplaywidth(title), vim.fn.strdisplaywidth(footer)) + 4
-	for _, l in ipairs(lines) do
-		width = math.max(width, vim.fn.strdisplaywidth(l))
-	end
-	width = math.min(width, vim.o.columns - 6)
-	local height = math.min(#lines, math.floor(vim.o.lines * 0.8))
+	require("custom.dbpopup").open({
+		lines = require("custom.dbpopup").columns(cells),
+		title = name,
+		footer = t.alias .. " · " .. #rows .. " columns · " .. source,
+		highlights = { { 0, "Title" } },
+	})
+end
 
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	vim.bo[buf].modifiable = false
-	vim.bo[buf].bufhidden = "wipe"
-	vim.api.nvim_buf_set_extmark(buf, vim.api.nvim_create_namespace("dbmeta_popup"), 0, 0, {
-		end_row = 1,
-		hl_group = "Title",
-		hl_eol = true,
-	})
-	popup_win = vim.api.nvim_open_win(buf, true, {
-		relative = "editor",
-		row = math.floor((vim.o.lines - height) / 2) - 1,
-		col = math.floor((vim.o.columns - width) / 2),
-		width = width,
-		height = height,
-		style = "minimal",
-		border = "rounded",
-		title = title,
-		title_pos = "center",
-		footer = footer,
-		footer_pos = "right",
-	})
-	vim.wo[popup_win].wrap = false
-	vim.wo[popup_win].cursorline = true
-	for _, key in ipairs({ "q", "<Esc>" }) do
-		vim.keymap.set("n", key, close_popup, { buffer = buf, nowait = true, desc = "Close columns pop-up" })
+--- { columns = n, fetched = epoch } for an alias's cache file, or nil.
+function M.cache_status(alias)
+	local path = cache_path(alias)
+	local h = read_header(path)
+	if not h then
+		return nil
 	end
-	vim.api.nvim_create_autocmd("WinLeave", {
-		buffer = buf,
-		once = true,
-		callback = function()
-			vim.schedule(close_popup)
-		end,
-	})
+	return { columns = #vim.fn.readfile(path) - 1, fetched = h.fetched, age = age(h.fetched) }
 end
 
 --- Float listing the columns of the table under the cursor in the DBUI drawer.
 function M.drawer_columns()
 	local t = drawer_table()
 	if not t then
-		vim.notify("dbmeta: put the cursor on a table (or one of its rows) in the drawer", vim.log.levels.WARN)
+		-- On a connection row (or anything under it that isn't a table): info.
+		local ok, alias = pcall(
+			vim.fn.eval,
+			"get(get(db_ui#drawer#get().dbui.dbs, db_ui#drawer#get().content[line('.') - 1].dbui_db_key_name, {}), 'name', '')"
+		)
+		if ok and alias ~= "" then
+			return require("custom.dbinfo").show(alias)
+		end
+		vim.notify("dbmeta: put the cursor on a connection or a table in the drawer", vim.log.levels.WARN)
 		return
 	end
 	local rows, fetched = cached_table(t.alias, t.schema, t.table)
@@ -867,7 +821,10 @@ vim.api.nvim_create_autocmd("FileType", {
 	pattern = "dbui",
 	callback = function(ev)
 		-- K is DBUI's "previous sibling"; I (inspect) is free.
-		vim.keymap.set("n", "I", M.drawer_columns, { buffer = ev.buf, desc = "Database: show table columns" })
+		vim.keymap.set("n", "I", M.drawer_columns, {
+			buffer = ev.buf,
+			desc = "Database: table columns / connection info",
+		})
 	end,
 })
 

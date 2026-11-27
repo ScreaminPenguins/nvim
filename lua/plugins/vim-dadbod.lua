@@ -28,6 +28,10 @@
 -- cached column across connections, <leader>DT / :DBTables every schema.table;
 -- `I` on a table in the drawer pops up its columns and types.
 --
+-- Metadata: <leader>Dm / :DBInfo (or `I` on a connection in the drawer) shows
+-- an entry's team, Cloud SQL project/instance, links and notes; <leader>Do /
+-- :DBOpen opens one of its links.
+--
 -- BigQuery uses the `bq` CLI; auth is gcloud's, not dadbod's — run
 -- `gcloud auth application-default login` if queries fail with an auth error.
 
@@ -81,6 +85,10 @@ require("custom.dbmeta")
 set("n", "<leader>Di", "<cmd>DBIntrospect<cr>", { desc = "Database: introspect connection (cache columns)" })
 set("n", "<leader>Ds", "<cmd>DBColumns<cr>", { desc = "Database: search cached columns" })
 set("n", "<leader>DT", "<cmd>DBTables<cr>", { desc = "Database: search cached schemas/tables" })
+-- Connection metadata (team, Cloud SQL, links, notes) — lua/custom/dbinfo.lua.
+require("custom.dbinfo")
+set("n", "<leader>Dm", "<cmd>DBInfo<cr>", { desc = "Database: connection info" })
+set("n", "<leader>Do", "<cmd>DBOpen<cr>", { desc = "Database: open connection link" })
 set("n", "<leader>Df", "<cmd>DBUIFindBuffer<cr>", { desc = "Database: find buffer" })
 set("n", "<leader>Da", "<cmd>DBUIAddConnection<cr>", { desc = "Database: add connection" })
 set("n", "<leader>Dr", "<cmd>DBUIRenameBuffer<cr>", { desc = "Database: rename buffer" })

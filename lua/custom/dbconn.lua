@@ -375,7 +375,8 @@ end
 -- -----------------------------------------------------------------------------
 -- Text filter (:DBFilter / <leader>D/)
 -- -----------------------------------------------------------------------------
--- Case-insensitive plain substring match against alias, type and groups.
+-- Case-insensitive plain substring match against alias, type, groups, team
+-- and Cloud SQL project/instance.
 -- Combines with the active group (both must match).
 
 local active_filter = nil
@@ -385,8 +386,11 @@ local function matches_filter(entry)
 		return true
 	end
 	local needle = active_filter:lower()
-	local hay = { entry.alias, entry.type or "" }
+	local hay = { entry.alias, entry.type or "", entry.team or "" }
 	vim.list_extend(hay, groups_of(entry))
+	if type(entry.cloudsql) == "table" then
+		vim.list_extend(hay, { entry.cloudsql.project or "", entry.cloudsql.instance or "" })
+	end
 	for _, s in ipairs(hay) do
 		if tostring(s):lower():find(needle, 1, true) then
 			return true

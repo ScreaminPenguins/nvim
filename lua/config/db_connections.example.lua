@@ -97,8 +97,27 @@
 --   plain alias. With "*", `database` is the one connected to for the lookup
 --   (default "postgres") and the fallback if the lookup fails. The lookup runs
 --   once per session when the DB tab first opens; :DBReload re-runs it.
---   e.g. { alias = "Officelink: Dev", type = "postgres", host = "...", user = "app",
---          database = "officelink", databases = "*", secret = true }
+--   e.g. { alias = "Billing: Dev", type = "postgres", host = "...", user = "app",
+--          database = "billing", databases = "*", secret = true }
+--
+-- Metadata (optional, any type; shown by <leader>Dm / :DBInfo, or `I` on a
+-- connection in the drawer):
+--   team     = "data-platform"                  owning team (also matched by
+--                                               <leader>D/ and the pickers)
+--   cloudsql = { project = "my-proj", instance = "orders-prod", region = "us-central1" }
+--              Cloud SQL instance; adds a "Cloud SQL console" link, and with
+--              all three, the proxy connection name project:region:instance
+--   links    = { console = "https://…", runbook = "https://…" }
+--              web pages; <leader>Do / :DBOpen opens one. Also accepts one
+--              string or a list. (Not `url`: that is the dadbod connection URL.)
+--   notes    = "free text, \n for more lines"
+--   info     = { slack = "#data-platform", oncall = "…" }   any extra rows
+--   All of these can go in defaults[type] too, and expanded `databases`
+--   connections inherit them from their server entry.
+--   e.g. { alias = "Orders: Prod", type = "postgres", host = "10.1.2.3", user = "app",
+--          database = "orders", secret = true, team = "commerce",
+--          cloudsql = { project = "commerce-prod", instance = "orders-prod", region = "us-central1" },
+--          links = { dashboard = "https://grafana.example.com/d/orders" } }
 --
 -- Excluding databases and schemas (optional):
 --   exclude = { databases = {...}, schemas = {...} }   top level: every connection
@@ -124,27 +143,55 @@ return {
 
 	defaults = {
 		postgres = { port = 5432, params = { sslmode = "require" } },
+		-- e.g. every postgres connection: postgres = { ..., secret = true, team = "data-platform" },
 		mysql = { port = 3306 },
 		redis = { port = 6379 },
 	},
 
 	connections = {
-		-- Postgres
-		-- { alias = "orders-dev", type = "postgres", host = "orders-dev.db.internal", user = "app", database = "orders", secret = true },
-		-- { alias = "orders-prod", type = "postgres", host = "orders-prod.db.internal", user = "readonly", database = "orders", secret = true },
+		-- Postgres: one line per connection is enough
+		-- { alias = "orders-dev", type = "postgres", host = "orders-dev.db.internal", user = "app", database = "orders", secret = true, team = "commerce" },
+		--
+		-- Postgres on Cloud SQL, with metadata (<leader>Dm shows it, <leader>Do opens
+		-- a link; a "Cloud SQL console" link is added from `cloudsql`)
+		-- {
+		-- 	alias = "orders-prod", type = "postgres", host = "10.20.0.5", user = "readonly", database = "orders",
+		-- 	secret = true, group = { "commerce", "prod" }, env = "prod",
+		-- 	team = "commerce",
+		-- 	cloudsql = { project = "commerce-prod-1a2b", instance = "orders-prod", region = "us-central1" },
+		-- 	links = {
+		-- 		dashboard = "https://grafana.example.com/d/orders-db",
+		-- 		runbook = "https://wiki.example.com/commerce/orders-db",
+		-- 	},
+		-- 	info = { slack = "#commerce-data", oncall = "commerce-oncall", tier = "1" },
+		-- 	notes = "Read replica — writes go to orders-primary.\nLong queries: use the analytics replica.",
+		-- },
+		--
+		-- One Cloud SQL server, every database on it ("<alias> / <db>"); the
+		-- metadata is inherited by each database
+		-- {
+		-- 	alias = "Billing: Dev", type = "postgres", host = "billing-dev.db.internal", user = "app",
+		-- 	database = "billing", databases = "*", exclude_databases = { "*_test" }, secret = true,
+		-- 	group = { "billing", "dev" }, team = "finance-eng",
+		-- 	cloudsql = { project = "billing-dev-9f8e", instance = "billing-dev", region = "us-east4" },
+		-- 	links = "https://wiki.example.com/billing",   -- a single link
+		-- },
 		--
 		-- -- MySQL
-		-- { alias = "legacy-crm", type = "mysql", host = "crm.db.internal", user = "report", database = "crm", secret = true },
+		-- { alias = "legacy-crm", type = "mysql", host = "crm.db.internal", user = "report", database = "crm", secret = true,
+		--   team = "sales-ops", exclude_schemas = { "archive_*" },
+		--   links = { "https://wiki.example.com/crm", "https://status.example.com/crm" } },   -- a list of links
 		--
 		-- -- Redis (database = numeric db index)
-		-- { alias = "cache-dev", type = "redis", host = "redis-dev.internal", database = 0, secret = true },
+		-- { alias = "cache-dev", type = "redis", host = "redis-dev.internal", database = 0, secret = true,
+		--   team = "platform", notes = "Flushed nightly; don't keep anything here." },
 		--
-		-- -- BigQuery (auth via gcloud — no secret)
-		-- { alias = "bq-dev", type = "bigquery", project = "dev-enterprise-wareh-6c24fdfb" },
-		-- { alias = "bq-prod", type = "bigquery", project = "prod-enterprise-ware-c8219262" },
-		-- { alias = "bq-sandbox", type = "bigquery", project = "sandbox-thunderdome" },
+		-- -- BigQuery (auth via gcloud — no secret; a "BigQuery console" link is added)
+		-- { alias = "bq-dev", type = "bigquery", project = "dev-enterprise-wareh-6c24fdfb", team = "data-platform" },
+		-- { alias = "bq-prod", type = "bigquery", project = "prod-enterprise-ware-c8219262", team = "data-platform", region = "us" },
+		-- { alias = "bq-sandbox", type = "bigquery", project = "sandbox-thunderdome", info = { purpose = "scratch work" } },
 
 		-- Raw URL escape hatch
-		-- { alias = "mssql-ops", url = "sqlserver://sa@ops.db.internal:1433/ops", secret = true },
+		-- { alias = "mssql-ops", url = "sqlserver://sa@ops.db.internal:1433/ops", secret = true, team = "it-ops" },
 	},
 }

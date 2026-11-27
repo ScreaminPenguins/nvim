@@ -261,8 +261,8 @@ local function format_entry(e)
 		or e.path
 		or ((e.host or "localhost") .. (e.database ~= nil and ("/" .. tostring(e.database)) or ""))
 	local groups = type(e.group) == "table" and table.concat(e.group, ",") or (e.group or "")
-	-- Group is part of the text, so fuzzy-typing a group name filters too.
-	return string.format("%-28s %-14s %-9s %s", e.alias, groups, e.type or "url", where)
+	-- Group and team are part of the text, so fuzzy-typing either filters too.
+	return string.format("%-28s %-14s %-14s %-9s %s", e.alias, groups, e.team or "", e.type or "url", where)
 end
 
 --- Pick a connection by alias and open a new query buffer for it.
