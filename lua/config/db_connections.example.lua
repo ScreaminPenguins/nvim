@@ -117,6 +117,13 @@
 --              string or a list. (Not `url`: that is the dadbod connection URL.)
 --   notes    = "free text, \n for more lines"
 --   info     = { slack = "#data-platform", oncall = "…" }   any extra rows
+--   env      = "prod"                           production marking: every
+--              query/results window on the connection gets a full-width PROD
+--              winbar. Any value starting with "prod" (case-insensitive)
+--              marks it; any other value ("dev", "staging") never does. With
+--              no `env`, a whole word "prod"/"production" in the alias or a
+--              group decides ("DataHub: Prod" yes, "product-db" no). Set
+--              env = "dev" to stop a name like "Product: Dev" being guessed.
 --   All of these can go in defaults[type] too, and expanded `databases`
 --   connections inherit them from their server entry.
 --   e.g. { alias = "Orders: Prod", type = "postgres", host = "10.1.2.3", user = "app",
