@@ -142,10 +142,23 @@ function M.load()
 			seen[raw.alias] = true
 			local d = defaults[raw.type] or {}
 			local item = vim.tbl_extend("keep", raw, d)
-			-- Exclusion lists add up (defaults[type] + entry) rather than replace.
-			for _, key in ipairs({ "exclude_databases", "exclude_schemas" }) do
-				if d[key] and raw[key] then
-					item[key] = vim.list_extend(vim.deepcopy(d[key]), raw[key])
+			-- Groups and exclusion lists add up (defaults[type] first, then the
+			-- entry, duplicates dropped) rather than replace. `group = false`
+			-- opts an entry out of the default groups.
+			for _, key in ipairs({ "group", "exclude_databases", "exclude_schemas" }) do
+				if raw[key] == false then
+					item[key] = nil
+				elseif d[key] ~= nil and raw[key] ~= nil then
+					local merged, seen = {}, {}
+					for _, list in ipairs({ d[key], raw[key] }) do
+						for _, v in ipairs(type(list) == "table" and list or { list }) do
+							if not seen[v] then
+								seen[v] = true
+								table.insert(merged, v)
+							end
+						end
+					end
+					item[key] = merged
 				end
 			end
 			table.insert(items, item)

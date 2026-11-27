@@ -74,7 +74,8 @@
 --   sqlite / duckdb: path
 --   anything else: url = "scheme://user@host/db"  (password spliced after user)
 -- `defaults[type]` fields are merged into every entry of that type; an
--- entry's own value wins. Any field works, e.g.
+-- entry's own value wins, except `group` and the `exclude_*` lists, which
+-- add up. Any field works, e.g.
 --   defaults = { postgres = { port = 5432, secret = true, databases = "*" } }
 -- and one entry opts out with `secret = false` / `databases = false`.
 --
@@ -86,6 +87,10 @@
 --   everything. Ungrouped entries only appear under "all". Only the shown
 --   group's Keychain secrets are fetched when the drawer is built.
 --   e.g. { alias = "DataHub: Dev", group = { "datahub", "dev" }, type = "mysql", ... }
+--   defaults[type].group is added to each entry's own groups, not replaced
+--   by them: with defaults = { postgres = { group = "postgres" } }, a postgres
+--   entry with group = { "datahub", "dev" } is in postgres, datahub and dev.
+--   `group = false` on an entry leaves it out of the default groups.
 --
 -- Several databases on one server (optional, any type):
 --   databases = { "orders", "reports" }  one connection per database, aliased
